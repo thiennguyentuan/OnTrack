@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Focus Session - OnTrack</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#f9f9f9",
+                        "on-primary-container": "#fefcff",
+                        "surface-tint": "#005ac2",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#adc6ff",
+                        "surface-container": "#eeeeee",
+                        "primary": "#0058be",
+                        "secondary-container": "#62fae3",
+                        "secondary": "#006b5f",
+                        "on-primary-fixed": "#001a42",
+                        "surface-container-low": "#f3f3f3",
+                        "tertiary-container": "#8455ef",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#727785",
+                        "on-secondary-fixed": "#00201c",
+                        "surface-dim": "#dadada",
+                        "inverse-primary": "#adc6ff",
+                        "on-surface-variant": "#424754",
+                        "tertiary-fixed-dim": "#d0bcff",
+                        "on-secondary-container": "#007165",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-error": "#ffffff",
+                        "outline-variant": "#c2c6d6",
+                        "tertiary": "#6b38d4",
+                        "inverse-on-surface": "#f0f1f1",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#fffbff",
+                        "secondary-fixed-dim": "#3cddc7",
+                        "on-background": "#1a1c1c",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-surface": "#1a1c1c",
+                        "primary-fixed": "#d8e2ff",
+                        "on-tertiary-fixed": "#23005c",
+                        "surface-bright": "#f9f9f9",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed-variant": "#004395",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#2170e4",
+                        "inverse-surface": "#2f3131",
+                        "tertiary-fixed": "#e9ddff",
+                        "surface": "#f9f9f9",
+                        "on-secondary-fixed-variant": "#005047",
+                        "surface-variant": "#e2e2e2",
+                        "surface-container-high": "#e8e8e8",
+                        "secondary-fixed": "#62fae3",
+                        "on-tertiary-fixed-variant": "#5516be"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "container-padding": "20px",
+                        "stack-gap-md": "16px",
+                        "stack-gap-sm": "8px",
+                        "gutter": "12px",
+                        "stack-gap-lg": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "title-md": ["Inter"],
+                        "display": ["Inter"],
+                        "caption": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .focus-glow {
+            box-shadow: 0 0 40px rgba(132, 85, 239, 0.2);
+        }
+        .timer-text {
+            font-variant-numeric: tabular-nums;
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+        }
+        .animate-pulse-slow {
+            animation: pulse-soft 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        body {
+            background-color: #1a0b2e; /* Overriding for Dark Purple "High Focus" Mode */
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="text-on-tertiary-container selection:bg-tertiary-fixed selection:text-on-tertiary-fixed">
+<!-- Ambient Focus Background -->
+<div class="fixed inset-0 z-0">
+
+<div class="absolute inset-0 bg-gradient-to-b from-[#1a0b2e] via-transparent to-[#1a0b2e]"></div>
+</div>
+<!-- Main Focus Canvas -->
+<main class="relative z-10 flex flex-col items-center justify-between min-h-screen px-container-padding py-stack-gap-lg">
+<!-- Header / Exit -->
+<header class="w-full flex justify-between items-center max-w-md mx-auto">
+<button aria-label="Exit Focus Session" class="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors active:scale-90">
+<span class="material-symbols-outlined text-on-tertiary-container">close</span>
+</button>
+<div class="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-md">
+<span class="material-symbols-outlined text-secondary-fixed text-sm" style="font-variation-settings: 'FILL' 1;">do_not_disturb_on</span>
+<span class="font-label-md text-label-md text-on-tertiary-container tracking-wider">DO NOT DISTURB</span>
+</div>
+<div class="w-12 h-12"></div> <!-- Spacer for balance -->
+</header>
+<!-- Central Content Cluster -->
+<div class="flex flex-col items-center text-center space-y-stack-gap-lg">
+<!-- Mode & Task Labels -->
+<div class="space-y-stack-gap-sm">
+<div class="flex items-center justify-center gap-2 animate-pulse-slow">
+<div class="w-2 h-2 rounded-full bg-secondary-fixed"></div>
+<span class="font-label-md text-label-md text-secondary-fixed uppercase tracking-[0.2em]">High Focus Active</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-tertiary-container">Design Dashboard</h1>
+</div>
+<!-- Large Countdown Timer -->
+<div class="relative group">
+<!-- Decorative Glow Rings -->
+<div class="absolute -inset-10 bg-tertiary-container/20 rounded-full blur-3xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
+<div class="relative flex flex-col items-center">
+<span class="timer-text font-display text-[120px] leading-none text-on-tertiary-container font-extrabold tracking-tighter drop-shadow-2xl">
+                        24:15
+                    </span>
+<div class="mt-4 flex items-center gap-4 text-on-tertiary-container/60">
+<span class="font-body-md text-body-md">Remaining</span>
+</div>
+</div>
+</div>
+<!-- Progress Indicator (Soft minimalist) -->
+<div class="w-64 h-1.5 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-fixed w-[75%] rounded-full shadow-[0_0_12px_rgba(60,221,199,0.5)]"></div>
+</div>
+</div>
+<!-- Action Controls -->
+<footer class="w-full max-w-md mx-auto grid grid-cols-2 gap-4 pb-12">
+<!-- Secondary Action -->
+<button class="flex items-center justify-center gap-2 h-[64px] bg-white/10 hover:bg-white/20 text-on-tertiary-container font-title-md text-title-md rounded-2xl transition-all active:scale-95 border border-white/5 backdrop-blur-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pause</span>
+                Pause
+            </button>
+<!-- Destructive/End Action -->
+<button class="flex items-center justify-center gap-2 h-[64px] bg-red-500/20 hover:bg-red-500/30 text-red-300 font-title-md text-title-md rounded-2xl transition-all active:scale-95 border border-red-500/10 backdrop-blur-sm">
+<span class="material-symbols-outlined">stop_circle</span>
+                End Early
+            </button>
+</footer>
+</main>
+<!-- Floating Atmosphere Elements -->
+<div class="fixed top-1/4 -left-20 w-64 h-64 bg-tertiary-container/10 rounded-full blur-[100px] pointer-events-none"></div>
+<div class="fixed bottom-1/4 -right-20 w-80 h-80 bg-secondary-container/5 rounded-full blur-[120px] pointer-events-none"></div>
+<script>
+        // Micro-interaction: Subtle parallax on the timer based on mouse/tilt
+        document.addEventListener('mousemove', (e) => {
+            const timer = document.querySelector('.timer-text');
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 50;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 50;
+            timer.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+
+        // Simple Timer Logic (Visual Only for Demo)
+        let seconds = 15;
+        let minutes = 24;
+        const timerDisplay = document.querySelector('.timer-text');
+
+        const countdown = setInterval(() => {
+            if (seconds === 0) {
+                if (minutes === 0) {
+                    clearInterval(countdown);
+                    return;
+                }
+                minutes--;
+                seconds = 59;
+            } else {
+                seconds--;
+            }
+            
+            const m = minutes.toString().padStart(2, '0');
+            const s = seconds.toString().padStart(2, '0');
+            timerDisplay.textContent = `${m}:${s}`;
+        }, 1000);
+
+        // Interaction Feedback
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const ripple = document.createElement('div');
+                ripple.classList.add('absolute', 'inset-0', 'bg-white/10', 'animate-ping', 'rounded-2xl');
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 400);
+            });
+        });
+    </script>
+</body></html>

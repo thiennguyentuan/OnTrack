@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "OnTrack",
+    "slug": "ontrack",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "ontrack",
+    "plugins": ["expo-router", "expo-notifications"],
+    "experiments": { "typedRoutes": true },
+    "android": { "package": "com.ontrack.app" },
+    "ios": { "bundleIdentifier": "com.ontrack.app" }
+  }
+}

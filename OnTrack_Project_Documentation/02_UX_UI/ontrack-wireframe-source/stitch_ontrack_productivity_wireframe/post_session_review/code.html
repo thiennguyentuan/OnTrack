@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OnTrack - Post-Session Review</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#f9f9f9",
+                    "on-primary-container": "#fefcff",
+                    "surface-tint": "#005ac2",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed-dim": "#adc6ff",
+                    "surface-container": "#eeeeee",
+                    "primary": "#0058be",
+                    "secondary-container": "#62fae3",
+                    "secondary": "#006b5f",
+                    "on-primary-fixed": "#001a42",
+                    "surface-container-low": "#f3f3f3",
+                    "tertiary-container": "#8455ef",
+                    "surface-container-lowest": "#ffffff",
+                    "outline": "#727785",
+                    "on-secondary-fixed": "#00201c",
+                    "surface-dim": "#dadada",
+                    "inverse-primary": "#adc6ff",
+                    "on-surface-variant": "#424754",
+                    "tertiary-fixed-dim": "#d0bcff",
+                    "on-secondary-container": "#007165",
+                    "on-secondary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "on-error": "#ffffff",
+                    "outline-variant": "#c2c6d6",
+                    "tertiary": "#6b38d4",
+                    "inverse-on-surface": "#f0f1f1",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-container": "#fffbff",
+                    "secondary-fixed-dim": "#3cddc7",
+                    "on-background": "#1a1c1c",
+                    "surface-container-highest": "#e2e2e2",
+                    "on-surface": "#1a1c1c",
+                    "primary-fixed": "#d8e2ff",
+                    "on-tertiary-fixed": "#23005c",
+                    "surface-bright": "#f9f9f9",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed-variant": "#004395",
+                    "on-primary": "#ffffff",
+                    "primary-container": "#2170e4",
+                    "inverse-surface": "#2f3131",
+                    "tertiary-fixed": "#e9ddff",
+                    "surface": "#f9f9f9",
+                    "on-secondary-fixed-variant": "#005047",
+                    "surface-variant": "#e2e2e2",
+                    "surface-container-high": "#e8e8e8",
+                    "secondary-fixed": "#62fae3",
+                    "on-tertiary-fixed-variant": "#5516be"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "container-padding": "20px",
+                    "stack-gap-md": "16px",
+                    "stack-gap-sm": "8px",
+                    "gutter": "12px",
+                    "stack-gap-lg": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "title-md": ["Inter"],
+                    "display": ["Inter"],
+                    "caption": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .soft-shadow {
+            shadow: 0 4px 12px rgba(0,0,0, 0.05);
+        }
+        .active-glow {
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface flex flex-col min-h-screen">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky bg-background z-50 flex justify-between items-center px-container-padding h-16 w-full max-w-md mx-auto">
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-on-surface-variant active:scale-95 transition-transform">close</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">OnTrack</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional close-up headshot of a focused university student in a bright, modern library setting. The lighting is soft and natural, emphasizing a calm, productive atmosphere. The background shows blurred books and minimalist furniture in a light-mode color palette of whites and soft greys." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCT8JRmq9o1YfuKwj3I9qHsPhZ7GkCmyqQemMDzRUjcilEJ0yZh8uucgxzVOgKOSdanHNIpgHdoV3d5TK-4YAGj2OrW2Tj4IdihKzr6A9v0-T8U7jOShCITmFPCuZQej8OzX-Pebo1EfIaGoIBs37Vi6Cw4bG4PbX0r1fE7jKDQOTauAXXXE1Fxng1sIfl2sdzQaYVpl95KWcfRZ9DEcESEHuyfGOjlB-j48V5zFXAS8LBptdsnGBuCaA"/>
+</div>
+</header>
+<main class="flex-1 w-full max-w-md mx-auto px-container-padding pb-10">
+<!-- Success Summary Section -->
+<section class="mt-stack-gap-lg text-center">
+<div class="inline-flex items-center justify-center w-20 h-20 bg-secondary-container rounded-full mb-stack-gap-md shadow-sm">
+<span class="material-symbols-outlined text-[40px] text-on-secondary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h2 class="font-display text-display text-on-surface mb-2">Session Complete</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Great work! You maintained high focus throughout your session.</p>
+</section>
+<!-- Result Card -->
+<div class="mt-stack-gap-lg bg-surface-container-lowest p-5 rounded-[24px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-surface-container-low">
+<div class="flex items-center justify-between mb-4">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">CURRENT TASK</p>
+<h3 class="font-title-md text-title-md text-on-surface">Design Dashboard</h3>
+</div>
+<div class="px-3 py-1 bg-tertiary-container text-on-tertiary-container rounded-full flex items-center gap-1 active-glow">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-label-md text-label-md">High Focus</span>
+</div>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">timer</span>
+<span class="font-body-md text-body-md">45m focus session</span>
+</div>
+</div>
+<!-- Progress Interaction Section -->
+<section class="mt-stack-gap-lg">
+<h4 class="font-title-md text-title-md text-on-surface mb-stack-gap-sm">How far did you get?</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Previous: <span class="font-bold text-primary">40%</span></p>
+<!-- Custom Progress Selector -->
+<div class="space-y-4">
+<div class="relative w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-primary transition-all duration-500 rounded-full" id="progress-bar-fill" style="width: 40%"></div>
+</div>
+<div class="flex overflow-x-auto hide-scrollbar gap-3 py-2 -mx-2 px-2" id="progress-options">
+<!-- Progress chips generated by JS -->
+</div>
+</div>
+</section>
+<!-- Completion Goal Card (Contextual Bento) -->
+<div class="mt-stack-gap-lg grid grid-cols-2 gap-3">
+<div class="bg-surface-container-lowest p-4 rounded-[24px] border border-surface-container-low shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+<span class="material-symbols-outlined text-primary mb-2">auto_awesome</span>
+<p class="font-label-md text-label-md text-on-surface-variant">NEXT GOAL</p>
+<p class="font-body-md text-body-md font-semibold text-on-surface">Final Polish</p>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-[24px] border border-surface-container-low shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+<span class="material-symbols-outlined text-secondary mb-2">calendar_today</span>
+<p class="font-label-md text-label-md text-on-surface-variant">EST. FINISH</p>
+<p class="font-body-md text-body-md font-semibold text-on-surface">Tomorrow</p>
+</div>
+</div>
+</main>
+<!-- Bottom Action Area -->
+<div class="fixed bottom-0 left-0 w-full p-container-padding bg-background max-w-md mx-auto z-50">
+<button class="w-full bg-primary text-on-primary font-semibold py-4 rounded-[16px] min-h-[52px] shadow-lg active:scale-95 transition-all duration-150 flex items-center justify-center gap-2" id="save-btn">
+            Save Progress
+            <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<script>
+        const optionsContainer = document.getElementById('progress-options');
+        const progressBarFill = document.getElementById('progress-bar-fill');
+        const saveBtn = document.getElementById('save-btn');
+        const percentages = [40, 50, 60, 70, 80, 90, 100];
+        let currentProgress = 40;
+
+        percentages.forEach(pct => {
+            const btn = document.createElement('button');
+            btn.className = `flex-shrink-0 min-w-[64px] h-12 rounded-[16px] border transition-all duration-200 font-semibold flex items-center justify-center ${pct === 40 ? 'bg-primary text-on-primary border-primary' : 'bg-surface-container-lowest text-on-surface-variant border-outline-variant'}`;
+            btn.innerText = pct + '%';
+            
+            btn.onclick = () => {
+                // Reset others
+                document.querySelectorAll('#progress-options button').forEach(b => {
+                    b.classList.remove('bg-primary', 'text-on-primary', 'border-primary');
+                    b.classList.add('bg-surface-container-lowest', 'text-on-surface-variant', 'border-outline-variant');
+                });
+                // Highlight current
+                btn.classList.add('bg-primary', 'text-on-primary', 'border-primary');
+                btn.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant', 'border-outline-variant');
+                
+                // Update bar
+                currentProgress = pct;
+                progressBarFill.style.width = pct + '%';
+                
+                // Visual feedback
+                if (pct === 100) {
+                    progressBarFill.classList.replace('bg-primary', 'bg-[#10B981]');
+                } else {
+                    progressBarFill.classList.remove('bg-[#10B981]');
+                    progressBarFill.classList.add('bg-primary');
+                }
+            };
+            
+            optionsContainer.appendChild(btn);
+        });
+
+        saveBtn.addEventListener('click', () => {
+            saveBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Saving...';
+            setTimeout(() => {
+                saveBtn.innerHTML = '<span class="material-symbols-outlined">check</span> Saved';
+                saveBtn.classList.replace('bg-primary', 'bg-secondary');
+            }, 1000);
+        });
+    </script>
+</body></html>

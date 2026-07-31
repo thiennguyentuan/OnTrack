@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OnTrack — Stay Focused</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#f9f9f9",
+                    "on-primary-container": "#fefcff",
+                    "surface-tint": "#005ac2",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed-dim": "#adc6ff",
+                    "surface-container": "#eeeeee",
+                    "primary": "#0058be",
+                    "secondary-container": "#62fae3",
+                    "secondary": "#006b5f",
+                    "on-primary-fixed": "#001a42",
+                    "surface-container-low": "#f3f3f3",
+                    "tertiary-container": "#8455ef",
+                    "surface-container-lowest": "#ffffff",
+                    "outline": "#727785",
+                    "on-secondary-fixed": "#00201c",
+                    "surface-dim": "#dadada",
+                    "inverse-primary": "#adc6ff",
+                    "on-surface-variant": "#424754",
+                    "tertiary-fixed-dim": "#d0bcff",
+                    "on-secondary-container": "#007165",
+                    "on-secondary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "on-error": "#ffffff",
+                    "outline-variant": "#c2c6d6",
+                    "tertiary": "#6b38d4",
+                    "inverse-on-surface": "#f0f1f1",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-container": "#fffbff",
+                    "secondary-fixed-dim": "#3cddc7",
+                    "on-background": "#1a1c1c",
+                    "surface-container-highest": "#e2e2e2",
+                    "on-surface": "#1a1c1c",
+                    "primary-fixed": "#d8e2ff",
+                    "on-tertiary-fixed": "#23005c",
+                    "surface-bright": "#f9f9f9",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed-variant": "#004395",
+                    "on-primary": "#ffffff",
+                    "primary-container": "#2170e4",
+                    "inverse-surface": "#2f3131",
+                    "tertiary-fixed": "#e9ddff",
+                    "surface": "#f9f9f9",
+                    "on-secondary-fixed-variant": "#005047",
+                    "surface-variant": "#e2e2e2",
+                    "surface-container-high": "#e8e8e8",
+                    "secondary-fixed": "#62fae3",
+                    "on-tertiary-fixed-variant": "#5516be"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "container-padding": "20px",
+                    "stack-gap-md": "16px",
+                    "stack-gap-sm": "8px",
+                    "gutter": "12px",
+                    "stack-gap-lg": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "title-md": ["Inter"],
+                    "display": ["Inter"],
+                    "caption": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+
+        /* Smooth breathing animation for the logo */
+        @keyframes logo-breathe {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+        .animate-breathe {
+            animation: logo-breathe 4s ease-in-out infinite;
+        }
+
+        /* Progress loader bar animation */
+        @keyframes progress-load {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        .loading-bar-fill {
+            animation: progress-load 3s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+        }
+
+        /* Fade in for text */
+        @keyframes text-fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up {
+            animation: text-fade-in 1s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col overflow-hidden">
+<!-- Splash Screen Canvas -->
+<main class="flex-1 flex flex-col items-center justify-center relative px-container-padding">
+<!-- Subtle Atmospheric Background Gradient -->
+<div class="absolute inset-0 bg-gradient-to-b from-primary-fixed/20 to-background z-0 pointer-events-none"></div>
+<!-- Content Container -->
+<div class="relative z-10 flex flex-col items-center text-center">
+<!-- Brand Identity Container -->
+<div class="mb-stack-gap-lg flex flex-col items-center animate-breathe">
+<!-- Placeholder for Logo -->
+<div class="w-24 h-24 bg-primary rounded-xl flex items-center justify-center shadow-[0_8px_30px_rgb(0,88,190,0.2)] mb-stack-gap-md overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A minimalist and sleek brand logo for a productivity app named OnTrack. The logo features a stylized, continuous geometric line that forms an abstract upward-pointing arrow inside a soft rounded square. The color palette is a professional primary blue and white, reflecting a calm, supportive, and organized mentor aesthetic. The lighting is soft and studio-quality, emphasizing a premium tactile feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUExiTPB7D44BJQEB_C9WKNu4wvY5mIRx5s_102xMlPMXL8KoVeh3srwP0oFkvUDC_9BM1v_sl-w7o3OyYbJtQeWF8nHY8RaqiGzR0M7FsFXfigZUIWzbrmZ8Tw8ZIBTNvqmXhNL7WrGIYWbaa_7AV7wwu_hyN-ZZay-_rycBN__epwhsDgzG5Ida7GGVtqBBeGteNPf8V6N0dZSVM6HUO62CzP9Ra2E3DuzIilJDeyvQtib0HP1W1dw"/>
+</div>
+<!-- Brand Name -->
+<h1 class="font-display text-display text-primary tracking-tight">
+                    OnTrack
+                </h1>
+</div>
+<!-- Tagline -->
+<p class="font-title-md text-title-md text-on-surface-variant max-w-[280px] animate-fade-up opacity-0" style="animation-delay: 0.5s;">
+                Stay focused. Stay on track.
+            </p>
+</div>
+<!-- Loading Indicator Section -->
+<div class="absolute bottom-16 left-0 right-0 flex flex-col items-center px-container-padding">
+<div class="w-full max-w-[240px] h-1.5 bg-surface-container rounded-full overflow-hidden">
+<!-- Using Primary Blue for the fill per Design System -->
+<div class="h-full bg-primary rounded-full loading-bar-fill"></div>
+</div>
+<span class="mt-stack-gap-sm font-label-md text-label-md text-outline uppercase tracking-widest animate-fade-up opacity-0" style="animation-delay: 0.8s;">
+                Preparing your focus
+            </span>
+</div>
+</main>
+<!-- Interactions Script -->
+<script>
+        // Simulate a splash screen transition or simply keep it static as requested.
+        // For a real app, this would redirect after the loading bar completes.
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('OnTrack Splash Screen Loaded');
+            
+            // Interaction: Tap to simulate finish
+            document.body.addEventListener('click', () => {
+                const bar = document.querySelector('.loading-bar-fill');
+                if (bar) {
+                    bar.style.transition = 'width 0.5s ease-out';
+                    bar.style.width = '100%';
+                }
+            });
+        });
+    </script>
+</body></html>
