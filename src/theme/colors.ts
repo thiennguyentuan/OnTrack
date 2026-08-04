@@ -8,4 +8,6 @@ export const colors = {
   success: '#18A66A',
   warning: '#F59E0B',
   danger: '#E55353',
+  secondary: '#006A60',
+  tertiary: '#8C4A60',
 } as const;
