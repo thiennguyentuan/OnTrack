@@ -12,7 +12,7 @@ This is the implementation contract for the FE team. It states exactly which Sup
 | Phase 1 — Identity | Ready (code) / Not ready (runtime verification) | Auth/profile/settings trigger, owner-only RLS, auth/profile/settings API | Local integration reset is blocked because the Supabase CLI/runtime is unavailable. |
 | Phase 2 — Planning | Ready (code) / Not ready (runtime verification) | Deadline/Milestone/Task CRUD, nested RLS, and query hooks | Local integration/typecheck verification pending because Supabase CLI/runtime and dependency linking are unavailable. |
 | Phase 3 — Sessions | Ready (code) / Not ready (runtime verification) | Sessions schema/RLS, lifecycle RPCs, session API and query hooks | Local lifecycle integration/typecheck verification pending because Supabase CLI/runtime and dependency linking are unavailable. |
-| Phase 4 — Review | Not ready | Review/progress/risk/follow-up/dashboard | Pending phase verification. |
+| Phase 4 — Review | Ready (code) / Not ready (runtime verification) | Review/follow-up/dashboard/risk APIs, RPCs, and query hooks | Local review integration/typecheck verification pending because Supabase CLI/runtime and dependency linking are unavailable. |
 | Phase 5 — Demo readiness | Not ready | Seed reset and complete demo flow | Pending phase verification. |
 
 ## Setup contract
