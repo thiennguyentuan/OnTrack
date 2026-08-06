@@ -94,7 +94,7 @@ async function createPlannedSession(label: string) {
   return { owner, taskId, sessionId: session.data!.id };
 }
 
-describe('session lifecycle RPCs', () => {
+describe.skipIf(!anonKey)('session lifecycle RPCs', () => {
   it('starts a planned session using the task current progress', async () => {
     const { owner, sessionId } = await createPlannedSession('Starter');
 

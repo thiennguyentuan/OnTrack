@@ -24,7 +24,7 @@ async function register(label: string) {
   return { client, userId: data.user.id };
 }
 
-describe('planning hierarchy RLS', () => {
+describe.skipIf(!anonKey)('planning hierarchy RLS', () => {
   it('rejects a milestone whose target date exceeds its deadline due date', async () => {
     const { client } = await register('Planner A');
     const deadline = await client

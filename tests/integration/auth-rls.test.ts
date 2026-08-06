@@ -17,7 +17,7 @@ async function register(label: string) {
   return { client, userId: data.user.id };
 }
 
-describe('identity RLS', () => {
+describe.skipIf(!anonKey)('identity RLS', () => {
   it('trigger-creates a profile and settings for a registered user', async () => {
     const { client, userId } = await register('User A');
     const profile = await client.from('profiles').select('id,email').eq('id', userId).single();
