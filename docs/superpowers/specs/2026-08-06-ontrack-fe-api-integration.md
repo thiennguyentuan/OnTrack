@@ -8,12 +8,12 @@ This is the implementation contract for the FE team. It states exactly which Sup
 
 | Phase | Status | Proven surface | Verification note |
 |---|---|---|---|
-| Phase 0 — Contract | Ready (code) / Not ready (runtime verification) | Public env contract, typed client, stable `ApiError` normalization | Implementation inspected; Vitest/typecheck blocked because dependencies are not installed (`vitest`/`tsc` unavailable). |
-| Phase 1 — Identity | Ready (code) / Not ready (runtime verification) | Auth/profile/settings trigger, owner-only RLS, auth/profile/settings API | Local integration reset is blocked because the Supabase CLI/runtime is unavailable. |
-| Phase 2 — Planning | Ready (code) / Not ready (runtime verification) | Deadline/Milestone/Task CRUD, nested RLS, and query hooks | Local integration/typecheck verification pending because Supabase CLI/runtime and dependency linking are unavailable. |
-| Phase 3 — Sessions | Ready (code) / Not ready (runtime verification) | Sessions schema/RLS, lifecycle RPCs, session API and query hooks | Local lifecycle integration/typecheck verification pending because Supabase CLI/runtime and dependency linking are unavailable. |
-| Phase 4 — Review | Ready (code) / Not ready (runtime verification) | Review/follow-up/dashboard/risk APIs, RPCs, and query hooks | Local review integration/typecheck verification pending because Supabase CLI/runtime and dependency linking are unavailable. |
-| Phase 5 — Demo readiness | Ready (code) / Not ready (runtime verification) | Deterministic seed and complete demo-flow contract coverage | Local reset/demo integration and typecheck pending because Supabase CLI/runtime and dependency linking are unavailable; device-local notifications remain out of scope. |
+| Phase 0 — Contract | Ready (code) / Ready (unit+typecheck) | Public env contract, typed client, stable `ApiError` normalization | Vitest unit and `tsc --noEmit` pass; Supabase stack startup still pending. |
+| Phase 1 — Identity | Ready (code) / Not ready (runtime verification) | Auth/profile/settings trigger, owner-only RLS, auth/profile/settings API | CLI installed; local Supabase startup timed out, so RLS integration remains unverified. |
+| Phase 2 — Planning | Ready (code) / Not ready (runtime verification) | Deadline/Milestone/Task CRUD, nested RLS, and query hooks | Typecheck passes; local RLS integration awaits Supabase stack startup. |
+| Phase 3 — Sessions | Ready (code) / Not ready (runtime verification) | Sessions schema/RLS, lifecycle RPCs, session API and query hooks | Typecheck passes; local lifecycle integration awaits Supabase stack startup. |
+| Phase 4 — Review | Ready (code) / Not ready (runtime verification) | Review/follow-up/dashboard/risk APIs, RPCs, and query hooks | Typecheck passes; local review integration awaits Supabase stack startup. |
+| Phase 5 — Demo readiness | Ready (code) / Not ready (runtime verification) | Deterministic seed and complete demo-flow contract coverage | CLI installed but `supabase start --debug` timed out; reset/demo integration remains pending. Device-local notifications remain out of scope. |
 
 ## Setup contract
 
