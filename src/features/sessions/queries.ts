@@ -10,4 +10,4 @@ function mutation<T>(fn: (input: T) => Promise<unknown>, keys: (input: T) => unk
 export const useStartSessionMutation = () => mutation(api.startSession, (id) => [['session', id], ['today']]);
 export const usePauseSessionMutation = () => mutation(api.pauseSession, (id) => [['session', id], ['today']]);
 export const useResumeSessionMutation = () => mutation(api.resumeSession, (id) => [['session', id], ['today']]);
-export const useEndSessionMutation = () => mutation(([id]) => api.endSession(id, true), ([id]) => [['session', id], ['today'], ['history']]);
+export const useEndSessionMutation = () => mutation((input: { id: string; endedEarly: boolean }) => api.endSession(input.id, input.endedEarly), (input) => [['session', input.id], ['today'], ['history']]);
