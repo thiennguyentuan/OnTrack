@@ -9,7 +9,7 @@ This is the implementation contract for the FE team. It states exactly which Sup
 | Phase | Status | Proven surface | Verification note |
 |---|---|---|---|
 | Phase 0 — Contract | Ready (code) / Not ready (runtime verification) | Public env contract, typed client, stable `ApiError` normalization | Implementation inspected; Vitest/typecheck blocked because dependencies are not installed (`vitest`/`tsc` unavailable). |
-| Phase 1 — Identity | Not ready | Auth/profile/settings/RLS | Pending phase verification. |
+| Phase 1 — Identity | Ready (code) / Not ready (runtime verification) | Auth/profile/settings trigger, owner-only RLS, auth/profile/settings API | Local integration reset is blocked because the Supabase CLI/runtime is unavailable. |
 | Phase 2 — Planning | Not ready | Deadline/Milestone/Task CRUD and query hooks | Pending phase verification. |
 | Phase 3 — Sessions | Not ready | Session CRUD/lifecycle RPCs and hooks | Pending phase verification. |
 | Phase 4 — Review | Not ready | Review/progress/risk/follow-up/dashboard | Pending phase verification. |
