@@ -3,6 +3,9 @@
 do $$
 declare demo_user uuid := '00000000-0000-0000-0000-000000000001';
 begin
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+    values (demo_user, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'demo@ontrack.local', crypt('OnTrack-demo-123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"OnTrack Demo"}', now(), now())
+    on conflict (id) do nothing;
   if exists (select 1 from auth.users where id = demo_user) then
     insert into public.profiles (id, full_name, email) values (demo_user, 'OnTrack Demo', 'demo@ontrack.local') on conflict (id) do nothing;
     insert into public.user_settings (user_id) values (demo_user) on conflict (user_id) do nothing;
@@ -16,5 +19,6 @@ begin
       on conflict (id) do nothing;
     insert into public.sessions (id, task_id, planned_start_at, estimated_minutes, focus_mode, progress_before)
       values ('00000000-0000-0000-0000-000000000014', '00000000-0000-0000-0000-000000000012', now() + interval '1 hour', 45, 'NORMAL', 40) on conflict (id) do nothing;
+    update public.sessions set status='COMPLETED', started_at=now()-interval '45 minutes', ended_at=now(), progress_after=40, actual_minutes=45, result_note='Seeded review' where id='00000000-0000-0000-0000-000000000014';
   end if;
 end $$;

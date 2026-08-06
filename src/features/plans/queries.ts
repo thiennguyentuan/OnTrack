@@ -20,4 +20,4 @@ function useApiMutation<TInput, TResult>(
 
 export const useCreateDeadlineMutation = () => useApiMutation(api.createDeadline, () => [['deadlines'], ['today']]);
 export const useCreateMilestoneMutation = () => useApiMutation(api.createMilestone, (input) => [['deadline', input.deadline_id], ['deadlines'], ['today']]);
-export const useCreateTaskMutation = () => useApiMutation(api.createTask, () => [['deadlines'], ['today']]);
+export const useCreateTaskMutation = () => useApiMutation(api.createTask, () => [['deadline'], ['deadlines'], ['today']]);

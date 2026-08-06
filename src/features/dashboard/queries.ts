@@ -6,9 +6,9 @@ export const useSessionHistoryQuery = () => useQuery({ queryKey: ['history'], qu
 export const useDeadlineRiskQuery = (id: string) => useQuery({ queryKey: ['risk', id], queryFn: () => api.getDeadlineRisk(id), enabled: Boolean(id) });
 export const useCompleteSessionReviewMutation = () => {
   const client = useQueryClient();
-  return useMutation({ mutationFn: api.completeSessionReview, onSuccess: () => { for (const key of [['today'], ['history'], ['deadlines']]) void client.invalidateQueries({ queryKey: key }); } });
+  return useMutation({ mutationFn: api.completeSessionReview, onSuccess: () => { for (const key of [['today'], ['history'], ['deadlines'], ['risk']]) void client.invalidateQueries({ queryKey: key }); } });
 };
 export const useCreateFollowUpSessionMutation = () => {
   const client = useQueryClient();
-  return useMutation({ mutationFn: api.createFollowUpSession, onSuccess: () => { for (const key of [['today'], ['history']]) void client.invalidateQueries({ queryKey: key }); } });
+  return useMutation({ mutationFn: api.createFollowUpSession, onSuccess: () => { for (const key of [['today'], ['history'], ['task'], ['session']]) void client.invalidateQueries({ queryKey: key }); } });
 };
