@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -46,7 +47,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Top App Bar */}
       <View style={styles.appBar}>
         <View style={styles.logoContainer}>
@@ -177,7 +178,7 @@ export default function RegisterScreen() {
           <Text style={styles.quoteText}>"The secret of getting ahead is getting started."</Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   appBar: {
-    height: 80,
+    height: 56,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -211,8 +212,8 @@ const styles = StyleSheet.create({
   },
   welcomeHeader: {
     alignItems: 'flex-start',
-    marginBottom: 32,
-    marginTop: 16,
+    marginBottom: 16,
+    marginTop: 0,
   },
   title: {
     fontSize: 32,
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: 24,
-    padding: 32,
+    padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -237,11 +238,11 @@ const styles = StyleSheet.create({
     borderColor: '#F1F5F9',
   },
   inputGap: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   submitBtn: {
-    marginTop: 16,
-    height: 56,
+    marginTop: 8,
+    height: 52,
     borderRadius: 12,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
@@ -250,13 +251,13 @@ const styles = StyleSheet.create({
   },
   secondaryActions: {
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 24,
   },
   backBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   backBtnText: {
     color: colors.primary,
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
     width: '100%',
   },
   divider: {
@@ -297,7 +298,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   decoration: {
-    marginTop: 48,
+    marginTop: 32,
     alignItems: 'center',
   },
   quoteText: {

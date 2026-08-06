@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
@@ -28,7 +29,7 @@ export default function MeScreen() {
             setIsLoggingOut(true);
             const { error } = await authService.signOut();
             setIsLoggingOut(false);
-            
+
             if (error) {
               Alert.alert('Error', error.message);
             }
@@ -41,7 +42,7 @@ export default function MeScreen() {
   const AVATAR_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuDxixReZkqmWkJxc-4B70efIhlWaQDll6XkGWlMu0UpGTqHYW1tou5Egp8XDLud3ue847yuotMRoggBs9XjSgCjSqWZoZKQXoVJZXyOHnwDMcR1H0e0bUGCTiE-hg9RT9EvXJ_gM-WpouRTh89OFNXZHwfUvqJb7PQs7y26xlv4ru0NMWRhHceBPn0vTiROZ_RaHAYSYGBVjXlKCEQsmi_nhE1wSTza7uo1SHzTTkDFwCCHv4OAdcQokA";
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Top App Bar */}
       <View style={styles.appBar}>
         <View style={styles.logoContainer}>
@@ -87,7 +88,7 @@ export default function MeScreen() {
             </View>
             <Text style={styles.focusValue}>24.5h</Text>
           </View>
-          
+
           {/* Simple Bar Chart Placeholder */}
           <View style={styles.chartContainer}>
             {[40, 65, 90, 55, 80, 30, 20].map((height, index) => {
@@ -96,7 +97,7 @@ export default function MeScreen() {
               return (
                 <View key={index} style={styles.barColumn}>
                   <View style={[
-                    styles.bar, 
+                    styles.bar,
                     { height: `${height}%`, backgroundColor: isToday ? colors.primary : colors.border }
                   ]} />
                   <Text style={styles.barLabel}>{days[index]}</Text>
@@ -158,7 +159,7 @@ export default function MeScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -184,7 +185,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: '#D4E2FF',
     justifyContent: 'center',
     alignItems: 'center',
   },
