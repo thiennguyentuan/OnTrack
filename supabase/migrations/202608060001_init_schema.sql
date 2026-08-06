@@ -4,6 +4,8 @@ create type public.priority as enum ('LOW', 'MEDIUM', 'HIGH');
 create type public.deadline_status as enum ('PLANNING', 'IN_PROGRESS', 'AT_RISK', 'COMPLETED', 'OVERDUE');
 create type public.milestone_status as enum ('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'OVERDUE');
 create type public.task_status as enum ('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
+create type public.session_status as enum ('PLANNED', 'IN_PROGRESS', 'PAUSED', 'COMPLETED', 'ENDED_EARLY', 'SKIPPED', 'CANCELLED');
+create type public.focus_mode as enum ('NORMAL', 'HIGH');
 create type public.risk_level as enum ('ON_TRACK', 'AT_RISK', 'OVERDUE');
 
 create or replace function public.set_updated_at()
@@ -74,12 +76,37 @@ create table public.tasks (
   updated_at timestamptz not null default now()
 );
 
+create table public.sessions (
+  id uuid primary key default gen_random_uuid(),
+  task_id uuid not null references public.tasks(id) on delete cascade,
+  planned_start_at timestamptz not null,
+  estimated_minutes integer not null check (estimated_minutes > 0),
+  focus_mode public.focus_mode not null default 'NORMAL',
+  status public.session_status not null default 'PLANNED',
+  progress_before numeric(5,2) not null default 0 check (progress_before >= 0 and progress_before <= 100),
+  progress_after numeric(5,2) check (progress_after >= progress_before and progress_after <= 100),
+  started_at timestamptz,
+  paused_at timestamptz,
+  expected_end_at timestamptz,
+  ended_at timestamptz,
+  actual_minutes integer check (actual_minutes is null or actual_minutes >= 0),
+  result_note text,
+  exit_count integer not null default 0 check (exit_count >= 0),
+  is_follow_up boolean not null default false,
+  previous_session_id uuid references public.sessions(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create index deadlines_user_due_idx on public.deadlines (user_id, due_at);
 create index deadlines_user_status_idx on public.deadlines (user_id, status);
 create index milestones_deadline_target_idx on public.milestones (deadline_id, target_at);
 create index milestones_deadline_position_idx on public.milestones (deadline_id, position);
 create index tasks_milestone_position_idx on public.tasks (milestone_id, position);
 create index tasks_milestone_status_idx on public.tasks (milestone_id, status);
+create index sessions_task_id_idx on public.sessions (task_id);
+create index sessions_planned_start_at_idx on public.sessions (planned_start_at);
+create index sessions_status_idx on public.sessions (status);
 
 create or replace function public.enforce_milestone_target_within_deadline()
 returns trigger
@@ -126,6 +153,10 @@ for each row execute function public.set_updated_at();
 
 create trigger tasks_updated_at
 before update on public.tasks
+for each row execute function public.set_updated_at();
+
+create trigger sessions_updated_at
+before update on public.sessions
 for each row execute function public.set_updated_at();
 
 create trigger milestones_target_within_deadline
