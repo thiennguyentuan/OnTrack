@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -42,7 +43,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Top App Bar */}
       <View style={styles.appBar}>
         <View style={styles.logoContainer}>
@@ -80,7 +81,7 @@ export default function LoginScreen() {
           <View style={styles.passwordContainer}>
             <View style={styles.passwordHeader}>
               <Text style={styles.passwordLabel}>Password</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
                 <Text style={styles.forgotPassword}>Forgot password?</Text>
               </TouchableOpacity>
             </View>
@@ -131,7 +132,7 @@ export default function LoginScreen() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9', // Match HTML background
   },
   appBar: {
-    height: 80,
+    height: 56,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f9f9f9',
