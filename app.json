@@ -6,9 +6,24 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "scheme": "ontrack",
-    "plugins": ["expo-router", "expo-notifications"],
-    "experiments": { "typedRoutes": true },
-    "android": { "package": "com.ontrack.app" },
-    "ios": { "bundleIdentifier": "com.ontrack.app" }
+    "plugins": [
+      "expo-router",
+      "expo-notifications",
+      "expo-splash-screen"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "android": {
+      "package": "com.ontrack.app"
+    },
+    "ios": {
+      "bundleIdentifier": "com.ontrack.app"
+    },
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0058be"
+    }
   }
 }
