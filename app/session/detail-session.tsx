@@ -4,12 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { Href, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 export default function SessionDetailScreen() {
   const router = useRouter();
-  const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
-
+  const { sessionId } = useLocalSearchParams<{ sessionId?: string; }>();
   // This function is temporary 
   const handleBackBtn = () => {
     router.back();
@@ -17,7 +16,12 @@ export default function SessionDetailScreen() {
 
   //This function is temporary
   const handleStartSession = () => {
-    router.push(`/session/${sessionId}/focusSession` as Href)
+    router.push({
+      pathname: "/session/focus",
+      params: {
+        sessionId: sessionId
+      }
+    });
   }
   return (
     <SafeAreaView style={styles.container}>

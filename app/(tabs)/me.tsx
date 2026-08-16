@@ -1,17 +1,16 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { useAuthStore } from '@/stores/authStore';
 import { authService } from '@/features/auth/authService';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { router } from 'expo-router';
 
 export default function MeScreen() {
   const { user } = useAuthStore();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const router = useRouter();
 
   const handleLogout = async () => {
     Alert.alert(
@@ -42,7 +41,7 @@ export default function MeScreen() {
   const AVATAR_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuDxixReZkqmWkJxc-4B70efIhlWaQDll6XkGWlMu0UpGTqHYW1tou5Egp8XDLud3ue847yuotMRoggBs9XjSgCjSqWZoZKQXoVJZXyOHnwDMcR1H0e0bUGCTiE-hg9RT9EvXJ_gM-WpouRTh89OFNXZHwfUvqJb7PQs7y26xlv4ru0NMWRhHceBPn0vTiROZ_RaHAYSYGBVjXlKCEQsmi_nhE1wSTza7uo1SHzTTkDFwCCHv4OAdcQokA";
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Top App Bar */}
       <View style={styles.appBar}>
         <View style={styles.logoContainer}>
@@ -109,7 +108,7 @@ export default function MeScreen() {
 
         {/* Navigation Links */}
         <View style={styles.linksContainer}>
-          <TouchableOpacity style={styles.linkCard}>
+          <TouchableOpacity style={styles.linkCard} onPress={() => router.push("/history/history")}>
             <View style={styles.linkLeft}>
               <View style={styles.linkIconBg}>
                 <MaterialIcons name="history" size={24} color={colors.muted} />

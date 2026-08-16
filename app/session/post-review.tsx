@@ -4,9 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
+import { useRouter } from 'expo-router';
 
 export default function PostSessionReviewScreen() {
   const progressOptions = [40, 50, 60, 75, 90, 100];
+  const router = useRouter();
+  // This function is temporary 
+  const handleSaveAndFinish = () => {
+    router.replace("/(tabs)/today")
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -59,7 +65,7 @@ export default function PostSessionReviewScreen() {
 
       {/* Save Button */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.saveBtn}>
+        <TouchableOpacity style={styles.saveBtn} onPress={() => handleSaveAndFinish()}>
           <Text style={styles.saveBtnText}>Save & Finish</Text>
         </TouchableOpacity>
       </View>
