@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { typography } from '@/theme/typography';
 import Animated, {
   useSharedValue,
@@ -18,6 +18,7 @@ const TOTAL_DURATION_SECONDS = 25 * 60;
 
 export default function FocusSessionScreen() {
   const router = useRouter();
+  const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
 
   // State quản lý bộ đếm thời gian
   const [remainingSeconds, setRemainingSeconds] = useState(TOTAL_DURATION_SECONDS);
@@ -130,8 +131,14 @@ export default function FocusSessionScreen() {
     ],
   }));
 
+  // This function is temporary
   const handleCloseEarly = () => {
-    router.push("/session/(sesssionId)/review")
+    router.push({
+      pathname: "/session/post-review",
+      params: {
+        sessionId: sessionId
+      }
+    })
   };
   const handleClose = () => {
     if (router.canGoBack()) {

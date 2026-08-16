@@ -4,15 +4,25 @@ import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'expo-router';
 
 export default function TodayScreen() {
   const { user } = useAuthStore();
   const avatarLetter = user?.email ? user.email.charAt(0).toUpperCase() : 'A';
-
+  const router = useRouter();
   const AVATAR_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuDxixReZkqmWkJxc-4B70efIhlWaQDll6XkGWlMu0UpGTqHYW1tou5Egp8XDLud3ue847yuotMRoggBs9XjSgCjSqWZoZKQXoVJZXyOHnwDMcR1H0e0bUGCTiE-hg9RT9EvXJ_gM-WpouRTh89OFNXZHwfUvqJb7PQs7y26xlv4ru0NMWRhHceBPn0vTiROZ_RaHAYSYGBVjXlKCEQsmi_nhE1wSTza7uo1SHzTTkDFwCCHv4OAdcQokA";
 
+  const handleStartSession = (sessionId: string) => {
+    router.push({
+      pathname: "/session/detail-session",
+      params: {
+        sessionId: sessionId
+      }
+    })
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Top App Bar */}
       <View style={styles.appBar}>
         <View style={styles.logoContainer}>
@@ -72,7 +82,7 @@ export default function TodayScreen() {
               <Text style={styles.contextText}>Mobile Final Project</Text>
             </View>
 
-            <TouchableOpacity style={styles.startBtn}>
+            <TouchableOpacity style={styles.startBtn} onPress={() => handleStartSession("ses1")}>
               <MaterialIcons name="play-arrow" size={24} color={colors.surface} />
               <Text style={styles.startBtnText}>Start Session</Text>
             </TouchableOpacity>

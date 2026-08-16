@@ -3,12 +3,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 export default function PlansScreen() {
   const AVATAR_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuDxixReZkqmWkJxc-4B70efIhlWaQDll6XkGWlMu0UpGTqHYW1tou5Egp8XDLud3ue847yuotMRoggBs9XjSgCjSqWZoZKQXoVJZXyOHnwDMcR1H0e0bUGCTiE-hg9RT9EvXJ_gM-WpouRTh89OFNXZHwfUvqJb7PQs7y26xlv4ru0NMWRhHceBPn0vTiROZ_RaHAYSYGBVjXlKCEQsmi_nhE1wSTza7uo1SHzTTkDFwCCHv4OAdcQokA";
+  const router = useRouter();
+  // This function is temporary 
+  const handleOpenDetailDeadline = (deadlineId: string) => {
+    router.push({
+      pathname: "/deadline/detail-deadline",
+      params: {
+        deadlineId: deadlineId
+      }
+    })
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Top App Bar */}
       <View style={styles.appBar}>
         <View style={styles.logoContainer}>
@@ -52,7 +63,7 @@ export default function PlansScreen() {
         <View style={styles.listContainer}>
 
           {/* Card 1: At Risk */}
-          <TouchableOpacity style={[styles.deadlineCard, { borderLeftColor: colors.danger }]}>
+          <TouchableOpacity style={[styles.deadlineCard, { borderLeftColor: colors.danger }]} onPress={() => handleOpenDetailDeadline("dl1")}>
             <View style={styles.cardTop}>
               <View style={styles.cardTopLeft}>
                 <Text style={styles.cardTitle}>Human-Computer Interaction Final</Text>
