@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { typography } from '@/theme/typography';
 import { colors } from '@/theme/colors';
+import { createDeadline } from '@/features/plans/api';
+import { toDeadlinePayload } from '@/features/plans/create-deadline';
 
 export interface DeadlineFormData {
   title: string;
@@ -36,6 +38,7 @@ type DeadlineInputs = {
 
 export default function CreateDeadlineScreen() {
   const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
 
   const formatDateString = (date: Date): string => {
     const day = String(date.getDate()).padStart(2, '0');
@@ -92,24 +95,18 @@ export default function CreateDeadlineScreen() {
     setValue('dueDateInput', formatDateString(newDate), { shouldValidate: true });
   };
 
-  const onSubmit = (data: DeadlineInputs) => {
-    const parsedDate = parseDateString(data.dueDateInput);
-    if (!parsedDate) return;
-
-    const newDeadline: DeadlineFormData = {
-      title: data.title.trim(),
-      description: data.description.trim(),
-      due_at: parsedDate,
-      priority: data.priority,
-      status: 'NOT_STARTED',
-      progress: 0,
-    };
-
-    console.log('Creating Deadline Payload:', newDeadline);
-
-    Alert.alert('Thành công', 'Đã tạo Deadline mới thành công!', [
-      { text: 'OK', onPress: () => handleBack() },
-    ]);
+  const onSubmit = async (data: DeadlineInputs) => {
+    setSubmitting(true);
+    try {
+      await createDeadline(toDeadlinePayload(data));
+      Alert.alert('Thành công', 'Đã tạo Deadline mới thành công!', [
+        { text: 'OK', onPress: handleBack },
+      ]);
+    } catch (cause: any) {
+      Alert.alert('Không thể tạo Deadline', cause?.message ?? 'Vui lòng thử lại.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -344,9 +341,10 @@ export default function CreateDeadlineScreen() {
             style={styles.submitBtn}
             activeOpacity={0.85}
             onPress={handleSubmit(onSubmit)}
+            disabled={submitting}
           >
             <MaterialIcons name="check" size={20} color="#FFFFFF" />
-            <Text style={styles.submitBtnText}>Create Deadline</Text>
+            <Text style={styles.submitBtnText}>{submitting ? 'Creating…' : 'Create Deadline'}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

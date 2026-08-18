@@ -64,6 +64,20 @@
   </section>
 
   <section>
+    <h2>Kết quả E2E trên web local</h2>
+    <p><span class="badge ok">PASS</span> Chạy trên <code>http://127.0.0.1:8081</code> với PostgreSQL và FastAPI local.</p>
+    <ol>
+      <li>Đăng ký tài khoản E2E mới và được chuyển đến Today.</li>
+      <li>Tạo Deadline từ form FE; deadline xuất hiện lại trong Plans từ API thật.</li>
+      <li>Tạo Milestone và Task trong Deadline Detail.</li>
+      <li>Tạo, start Focus Session, end early và lưu Review.</li>
+      <li>Xác minh DB: session <code>ENDED_EARLY</code>, progress task/review = <code>40</code>, actual minutes = <code>20</code>.</li>
+      <li>Browser console không có lỗi mức <code>error</code>.</li>
+    </ol>
+    <p>Trong quá trình E2E đã phát hiện màn Create Deadline ban đầu chỉ hiển thị thông báo thành công. Màn này đã được sửa để gọi <code>POST /api/v3/deadlines</code> và xác minh lại bằng UI.</p>
+  </section>
+
+  <section>
     <h2>Hướng dẫn chạy lại</h2>
     <ol>
       <li>Mở Docker Desktop.</li>
