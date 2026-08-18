@@ -20,7 +20,7 @@
   <header>
     <h1>OnTrack — Báo cáo tích hợp FE / BE</h1>
     <p class="meta">Ngày kiểm tra: 18/08/2026 · Nhánh làm việc: <code>codex/ontrack-demo-backend</code></p>
-    <p><span class="badge ok">MÃ NGUỒN ĐÃ HỢP NHẤT</span> <span class="badge warn">RUNTIME DB CHƯA XÁC MINH</span></p>
+    <p><span class="badge ok">MÃ NGUỒN ĐÃ HỢP NHẤT</span> <span class="badge ok">RUNTIME REST ĐÃ XÁC MINH</span></p>
   </header>
 
   <section>
@@ -44,8 +44,9 @@
         <tr><td><code>pnpm run typecheck</code></td><td><span class="badge ok">PASS</span></td><td><code>tsc --noEmit</code> kết thúc thành công sau merge.</td></tr>
         <tr><td><code>pnpm test</code></td><td><span class="badge ok">PASS</span></td><td>3 test domain pass; 10 test integration bị skip vì không có Supabase local, không phải BE REST đang triển khai.</td></tr>
         <tr><td><code>git diff --check</code></td><td><span class="badge ok">PASS</span></td><td>Không có lỗi whitespace; chỉ có cảnh báo CRLF của Git trên Windows.</td></tr>
-        <tr><td>Docker/PostgreSQL</td><td><span class="badge warn">BLOCKED</span></td><td>Docker daemon không chạy và cổng <code>5432</code> không mở, do đó không thể xác minh health/API end-to-end trong máy hiện tại.</td></tr>
-        <tr><td>Expo web export</td><td><span class="badge warn">NOT RECORDED</span></td><td>Metro khởi chạy nhưng không hoàn tất trong phiên kiểm tra; không dùng kết quả này để khẳng định build web.</td></tr>
+        <tr><td>Docker/PostgreSQL và FastAPI health</td><td><span class="badge ok">PASS</span></td><td>Khởi động Docker Desktop, PostgreSQL container và FastAPI; <code>GET /health</code> trả <code>{"status":"ok","database":"postgresql"}</code>.</td></tr>
+        <tr><td>REST smoke flow</td><td><span class="badge ok">PASS</span></td><td>Đăng ký → Deadline → Milestone → Task → Session → Start → End → Review → Follow-up. Task progress = 40; follow-up progress_before = 40.</td></tr>
+        <tr><td>Expo web export</td><td><span class="badge ok">PASS</span></td><td><code>pnpm exec expo export --platform web --output-dir .expo-export-test</code> bundle thành công (1,401 modules).</td></tr>
       </tbody>
     </table>
   </section>
@@ -63,7 +64,7 @@
   </section>
 
   <section>
-    <h2>Bước chạy xác minh còn lại</h2>
+    <h2>Hướng dẫn chạy lại</h2>
     <ol>
       <li>Mở Docker Desktop.</li>
       <li>Từ root chạy <code>docker compose up -d postgres</code>.</li>

@@ -4,7 +4,10 @@ node_modules/
 backend/.venv/
 __pycache__/
 *.pyc
+backend/server.log
+backend/server.err
 .expo/
+.expo-export-test/
 dist/
 web-build/
 *.jks
