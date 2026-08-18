@@ -124,7 +124,7 @@ export default function HistoryScreen({
   };
 
   const handleBack = () => {
-    router.navigate("/(tabs)/me")
+    router.navigate('/(tabs)/me' as any);
   };
 
   return (

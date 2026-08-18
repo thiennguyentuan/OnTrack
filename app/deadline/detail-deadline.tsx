@@ -81,11 +81,18 @@ export default function DeadlineDetailScreen() {
   // Mặc định mở Milestone UI Design (m2)
   const [expandedMilestoneId, setExpandedMilestoneId] = useState<string | null>('m2');
 
+  // Tính toán overall progress theo đúng domain model OnTrack
+  const overallProgress = React.useMemo(() => {
+    if (milestones.length === 0) return 0;
+    const sum = milestones.reduce((acc, m) => acc + m.progress, 0);
+    return Math.round(sum / milestones.length);
+  }, [milestones]);
+
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.push(`/(tabs)/plans`);
+      router.navigate('/(tabs)/plans' as any);
     }
   };
 
@@ -140,7 +147,7 @@ export default function DeadlineDetailScreen() {
       params: {
         milestoneId: milestoneId
       }
-    })
+    });
   };
 
   return (
@@ -151,7 +158,22 @@ export default function DeadlineDetailScreen() {
           <MaterialIcons name="arrow-back" size={24} color="#0058BE" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Details</Text>
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={() =>
+            router.push({
+              pathname: '/deadline/edit-deadline',
+              params: {
+                deadlineId: deadlineId || 'dl1',
+                title: 'Mobile Final Project',
+                dueAt: '2026-12-15',
+                description: 'Final capstone mobile application project with high focus and milestone checkpoints.',
+                priority: 'HIGH',
+                status: 'IN_PROGRESS',
+              },
+            } as any)
+          }
+        >
           <MaterialIcons name="more-vert" size={24} color="#424754" />
         </TouchableOpacity>
       </View>
@@ -162,11 +184,14 @@ export default function DeadlineDetailScreen() {
           { paddingBottom: 110 + insets.bottom },
         ]}
         showsVerticalScrollIndicator={false}
+        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
       >
         {/* Hero Card */}
         <View style={styles.heroCard}>
           <View style={styles.heroBadge}>
-            <Text style={styles.heroBadgeText}>AT RISK</Text>
+            <Text style={styles.heroBadgeText}>
+              {overallProgress >= 100 ? 'COMPLETED' : overallProgress >= 50 ? 'IN PROGRESS' : 'AT RISK'}
+            </Text>
           </View>
 
           <Text style={styles.projectTitle}>Mobile Final Project</Text>
@@ -179,10 +204,10 @@ export default function DeadlineDetailScreen() {
           <View style={styles.progressSection}>
             <View style={styles.progressLabelRow}>
               <Text style={styles.progressLabel}>OVERALL PROGRESS</Text>
-              <Text style={styles.progressValue}>60%</Text>
+              <Text style={styles.progressValue}>{overallProgress}%</Text>
             </View>
             <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: '60%' }]} />
+              <View style={[styles.progressBarFill, { width: `${overallProgress}%` }]} />
             </View>
           </View>
         </View>
@@ -190,7 +215,19 @@ export default function DeadlineDetailScreen() {
         {/* Section Header */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Milestones</Text>
-          <TouchableOpacity style={styles.addMilestoneBtn}>
+          <TouchableOpacity
+            style={styles.addMilestoneBtn}
+            onPress={() =>
+              router.push({
+                pathname: '/milestone/create-milestone',
+                params: {
+                  deadlineId: deadlineId || 'd123-mobile-project',
+                  deadlineTitle: 'Mobile Final Project',
+                  deadlineDueAt: '2026-12-15',
+                },
+              } as any)
+            }
+          >
             <MaterialIcons name="add-circle-outline" size={18} color="#0058BE" />
             <Text style={styles.addMilestoneText}>Add Milestone</Text>
           </TouchableOpacity>

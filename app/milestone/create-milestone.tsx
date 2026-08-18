@@ -82,7 +82,14 @@ export default function CreateMilestoneScreen() {
   const selectedPreset = watch('selectedPreset');
 
   const handleBack = () => {
-    if (router.canGoBack()) router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace({
+        pathname: '/deadline/detail-deadline',
+        params: { deadlineId: parentDeadline.id },
+      } as any);
+    }
   };
 
   const handleSelectPreset = (type: '7days' | '14days' | 'due') => {
