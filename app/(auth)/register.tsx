@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +8,7 @@ import { typography } from '@/theme/typography';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { authService } from '@/features/auth/authService';
+import { useAuthStore } from '@/stores/authStore';
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { useRouter as useExpoRouter } from 'expo-router';
 
@@ -25,6 +26,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterScreen() {
   const router = useExpoRouter();
+  const setSession = useAuthStore((state) => state.setSession);
   const {
     control,
     handleSubmit,
@@ -40,10 +42,13 @@ export default function RegisterScreen() {
   });
 
   const onSubmit = async (data: RegisterForm) => {
-    // const { error } = await authService.signUp(data.email, data.password);
-    // if (error) {
-    //   Alert.alert('Registration failed', error.message);
-    // }
+    try {
+      const session = await authService.signUp(data.email, data.password, data.name);
+      setSession(session);
+      router.replace('/(tabs)/today');
+    } catch (error) {
+      Alert.alert('Registration failed', error instanceof Error ? error.message : 'Unable to register');
+    }
   };
 
   return (

@@ -1,17 +1,18 @@
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { useAuthStore } from '@/stores/authStore';
+import { useScrollStore } from '@/stores/scrollStore';
 import { authService } from '@/features/auth/authService';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { router } from 'expo-router';
 
 export default function MeScreen() {
   const { user } = useAuthStore();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const router = useRouter();
+  const { meScrollY, setMeScrollY } = useScrollStore();
 
   const handleLogout = async () => {
     Alert.alert(
@@ -27,11 +28,12 @@ export default function MeScreen() {
           style: 'destructive',
           onPress: async () => {
             setIsLoggingOut(true);
-            const { error } = await authService.signOut();
-            setIsLoggingOut(false);
-
-            if (error) {
-              Alert.alert('Error', error.message);
+            try {
+              await authService.signOut();
+            } catch (error) {
+              Alert.alert('Error', error instanceof Error ? error.message : 'Logout failed');
+            } finally {
+              setIsLoggingOut(false);
             }
           },
         },
@@ -42,7 +44,7 @@ export default function MeScreen() {
   const AVATAR_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuDxixReZkqmWkJxc-4B70efIhlWaQDll6XkGWlMu0UpGTqHYW1tou5Egp8XDLud3ue847yuotMRoggBs9XjSgCjSqWZoZKQXoVJZXyOHnwDMcR1H0e0bUGCTiE-hg9RT9EvXJ_gM-WpouRTh89OFNXZHwfUvqJb7PQs7y26xlv4ru0NMWRhHceBPn0vTiROZ_RaHAYSYGBVjXlKCEQsmi_nhE1wSTza7uo1SHzTTkDFwCCHv4OAdcQokA";
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Top App Bar */}
       <View style={styles.appBar}>
         <View style={styles.logoContainer}>
@@ -54,7 +56,17 @@ export default function MeScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        contentOffset={{ x: 0, y: meScrollY }}
+        onMomentumScrollEnd={(e) => {
+          setMeScrollY(e.nativeEvent.contentOffset.y);
+        }}
+        onScrollEndDrag={(e) => {
+          setMeScrollY(e.nativeEvent.contentOffset.y);
+        }}
+      >
         {/* Profile Identity */}
         <View style={styles.profileSection}>
           <Text style={styles.profileName}>Alex Rivers</Text>
@@ -109,7 +121,7 @@ export default function MeScreen() {
 
         {/* Navigation Links */}
         <View style={styles.linksContainer}>
-          <TouchableOpacity style={styles.linkCard}>
+          <TouchableOpacity style={styles.linkCard} onPress={() => router.push("/history/history" as any)}>
             <View style={styles.linkLeft}>
               <View style={styles.linkIconBg}>
                 <MaterialIcons name="history" size={24} color={colors.muted} />
@@ -119,7 +131,10 @@ export default function MeScreen() {
             <MaterialIcons name="chevron-right" size={24} color={colors.border} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.linkCard}>
+          <TouchableOpacity
+            style={styles.linkCard}
+            onPress={() => router.push('/settings/notification-settings' as any)}
+          >
             <View style={styles.linkLeft}>
               <View style={styles.linkIconBg}>
                 <MaterialIcons name="notifications-active" size={24} color={colors.muted} />
@@ -129,7 +144,10 @@ export default function MeScreen() {
             <MaterialIcons name="chevron-right" size={24} color={colors.border} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.linkCard}>
+          <TouchableOpacity
+            style={styles.linkCard}
+            onPress={() => router.push('/settings/focus-settings' as any)}
+          >
             <View style={styles.linkLeft}>
               <View style={styles.linkIconBg}>
                 <MaterialIcons name="center-focus-strong" size={24} color={colors.muted} />
@@ -139,7 +157,10 @@ export default function MeScreen() {
             <MaterialIcons name="chevron-right" size={24} color={colors.border} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.linkCard}>
+          <TouchableOpacity
+            style={styles.linkCard}
+            onPress={() => router.push('/settings/account' as any)}
+          >
             <View style={styles.linkLeft}>
               <View style={styles.linkIconBg}>
                 <MaterialIcons name="person" size={24} color={colors.muted} />

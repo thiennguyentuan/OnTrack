@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,10 +36,12 @@ export default function LoginScreen() {
   const setSession = useAuthStore((state) => state.setSession);
 
   const onSubmit = async (data: LoginForm) => {
-    // TEMP MOCK LOGIN for UI testing
-    setSession({
-      user: { email: data.email }
-    } as any);
+    try {
+      const result = await authService.signIn(data.email, data.password);
+      setSession(result);
+    } catch (error) {
+      Alert.alert('Login failed', error instanceof Error ? error.message : 'Unable to login');
+    }
   };
 
   return (

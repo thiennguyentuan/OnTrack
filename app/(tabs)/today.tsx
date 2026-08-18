@@ -1,18 +1,34 @@
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'expo-router';
+import { getTodayDashboard } from '@/features/dashboard/api';
 
 export default function TodayScreen() {
   const { user } = useAuthStore();
   const avatarLetter = user?.email ? user.email.charAt(0).toUpperCase() : 'A';
-
+  const router = useRouter();
   const AVATAR_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuDxixReZkqmWkJxc-4B70efIhlWaQDll6XkGWlMu0UpGTqHYW1tou5Egp8XDLud3ue847yuotMRoggBs9XjSgCjSqWZoZKQXoVJZXyOHnwDMcR1H0e0bUGCTiE-hg9RT9EvXJ_gM-WpouRTh89OFNXZHwfUvqJb7PQs7y26xlv4ru0NMWRhHceBPn0vTiROZ_RaHAYSYGBVjXlKCEQsmi_nhE1wSTza7uo1SHzTTkDFwCCHv4OAdcQokA";
+  const [dashboard, setDashboard] = useState<any>();
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    getTodayDashboard().then(setDashboard).catch((cause: any) => setError(cause?.message ?? 'Unable to load today.'));
+  }, []);
+  const sessions = dashboard?.sessions ?? [];
+  const nextSession = dashboard?.next_session ?? sessions.find((item: any) => ['PLANNED', 'IN_PROGRESS', 'PAUSED'].includes(item.status));
+  const laterSessions = sessions.filter((item: any) => item.id !== nextSession?.id && !['COMPLETED', 'ENDED_EARLY'].includes(item.status));
+  const completedSessions = sessions.filter((item: any) => ['COMPLETED', 'ENDED_EARLY'].includes(item.status));
+
+  const handleStartSession = (sessionId: string) => {
+    router.push(`/session/${sessionId}` as any)
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Top App Bar */}
       <View style={styles.appBar}>
         <View style={styles.logoContainer}>
@@ -27,112 +43,90 @@ export default function TodayScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Greeting Section */}
         <View style={styles.greetingSection}>
-          <Text style={styles.greetingTitle}>Good Morning, {avatarLetter === 'A' ? 'Alex' : avatarLetter}</Text>
-          <Text style={styles.greetingSubtitle}>Tuesday, October 24</Text>
+          <Text style={styles.greetingTitle}>Good Morning, {user?.full_name ?? avatarLetter}</Text>
+          <Text style={styles.greetingSubtitle}>{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
 
           <View style={styles.infoBanner}>
             <MaterialIcons name="info" size={20} color={colors.secondary} />
-            <Text style={styles.infoText}>You need 2 sessions today to stay on track.</Text>
+            <Text style={styles.infoText}>{sessions.length ? `${sessions.length} session${sessions.length === 1 ? '' : 's'} planned today.` : 'No sessions planned today.'}</Text>
           </View>
         </View>
 
         {/* Risk Alert */}
-        <TouchableOpacity style={styles.riskAlert}>
+        {!!dashboard?.risk_card && <TouchableOpacity style={styles.riskAlert}>
           <View style={styles.riskLeft}>
             <MaterialIcons name="warning" size={20} color={colors.danger} />
-            <Text style={styles.riskText}>Mobile Project needs attention.</Text>
+            <Text style={styles.riskText}>{dashboard.risk_card.message ?? `${dashboard.risk_card.title} needs attention.`}</Text>
           </View>
           <MaterialIcons name="chevron-right" size={20} color={colors.danger} />
-        </TouchableOpacity>
+        </TouchableOpacity>}
+        {!!error && <Text style={styles.greetingSubtitle}>{error}</Text>}
 
         {/* Next Session */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Next Session</Text>
-            <Text style={styles.upNextText}>UP NEXT: 10:30 AM</Text>
+            <Text style={styles.upNextText}>{nextSession ? `UP NEXT: ${new Date(nextSession.planned_start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'NO UPCOMING SESSION'}</Text>
           </View>
 
-          <View style={styles.nextSessionCard}>
+          {nextSession ? <View style={styles.nextSessionCard}>
             <View style={styles.cardIndicator} />
             <View style={styles.cardHeader}>
               <View>
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>High Focus</Text>
+                  <Text style={styles.badgeText}>{nextSession.focus_mode === 'HIGH' ? 'High Focus' : 'Normal Focus'}</Text>
                 </View>
-                <Text style={styles.cardTitle}>Design Dashboard</Text>
+                <Text style={styles.cardTitle}>{nextSession.task_title}</Text>
               </View>
               <View style={styles.durationContainer}>
                 <MaterialIcons name="timer" size={16} color={colors.muted} />
-                <Text style={styles.durationText}>45m</Text>
+                <Text style={styles.durationText}>{nextSession.estimated_minutes}m</Text>
               </View>
             </View>
 
             <View style={styles.cardContext}>
               <MaterialIcons name="school" size={18} color={colors.muted} />
-              <Text style={styles.contextText}>Mobile Final Project</Text>
+              <Text style={styles.contextText}>{nextSession.status.replace('_', ' ')}</Text>
             </View>
 
-            <TouchableOpacity style={styles.startBtn}>
+            <TouchableOpacity style={styles.startBtn} onPress={() => handleStartSession(nextSession.id)}>
               <MaterialIcons name="play-arrow" size={24} color={colors.surface} />
               <Text style={styles.startBtnText}>Start Session</Text>
             </TouchableOpacity>
-          </View>
+          </View> : <Text style={styles.greetingSubtitle}>Plan a session from a task to see it here.</Text>}
         </View>
 
         {/* Later Today */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Later Today</Text>
 
-          <View style={styles.taskCard}>
+          {laterSessions.map((session: any) => <TouchableOpacity key={session.id} style={styles.taskCard} onPress={() => handleStartSession(session.id)}>
             <View style={styles.taskLeft}>
               <View style={styles.taskIconBg}>
                 <MaterialIcons name="edit-note" size={24} color={colors.muted} />
               </View>
               <View>
-                <Text style={styles.taskTitle}>Write Literature Review</Text>
-                <Text style={styles.taskMeta}>1:30 PM • 60m • Medium Focus</Text>
+                <Text style={styles.taskTitle}>{session.task_title}</Text>
+                <Text style={styles.taskMeta}>{new Date(session.planned_start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {session.estimated_minutes}m • {session.focus_mode} Focus</Text>
               </View>
             </View>
             <MaterialIcons name="more-vert" size={24} color={colors.muted} />
-          </View>
-
-          <View style={styles.taskCard}>
-            <View style={styles.taskLeft}>
-              <View style={styles.taskIconBg}>
-                <MaterialIcons name="science" size={24} color={colors.muted} />
-              </View>
-              <View>
-                <Text style={styles.taskTitle}>Lab Report Submission</Text>
-                <Text style={styles.taskMeta}>4:00 PM • 30m • Deep Work</Text>
-              </View>
-            </View>
-            <MaterialIcons name="more-vert" size={24} color={colors.muted} />
-          </View>
+          </TouchableOpacity>)}
         </View>
 
         {/* Completed Today */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Completed Today</Text>
 
-          <View style={styles.completedCard}>
+          {completedSessions.map((session: any) => <View key={session.id} style={styles.completedCard}>
             <View style={styles.completedLeft}>
               <View style={styles.completedIconBg}>
                 <MaterialIcons name="check-circle" size={16} color={colors.secondary} />
               </View>
-              <Text style={styles.completedText}>Check group email</Text>
+              <Text style={styles.completedText}>{session.task_title}</Text>
             </View>
-            <Text style={styles.completedTime}>08:15 AM</Text>
-          </View>
-
-          <View style={styles.completedCard}>
-            <View style={styles.completedLeft}>
-              <View style={styles.completedIconBg}>
-                <MaterialIcons name="check-circle" size={16} color={colors.secondary} />
-              </View>
-              <Text style={styles.completedText}>Prepare lecture notes</Text>
-            </View>
-            <Text style={styles.completedTime}>09:00 AM</Text>
-          </View>
+            <Text style={styles.completedTime}>{session.ended_at ? new Date(session.ended_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Completed'}</Text>
+          </View>)}
         </View>
       </ScrollView>
     </SafeAreaView>

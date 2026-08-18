@@ -1,21 +1,11 @@
-import { supabase } from '../../lib/supabase';
-import { normalizeApiError } from '../../lib/api-error';
-import type { Database } from '../../types/database';
-
-async function unwrap<T>(promise: PromiseLike<{ data: T | null; error: { code?: string; message?: string } | null }>): Promise<T> {
-  const { data, error } = await promise;
-  if (error) throw normalizeApiError(error);
-  return data as T;
-}
-
+import { apiRequest } from '../../lib/api-client';
 export type CreateSessionInput = { task_id: string; planned_start_at: string; estimated_minutes: number; focus_mode: 'NORMAL' | 'HIGH'; is_follow_up?: boolean; previous_session_id?: string | null };
-export const createSession = (input: CreateSessionInput) => unwrap(supabase.from('sessions').insert(input).select().single());
-export const getSession = (id: string) => unwrap<unknown>(supabase.from('sessions').select('*, tasks!inner(id,title,current_progress,milestones!inner(id,deadline_id))').eq('id', id).single() as never);
-export const getTodaySessions = () => unwrap(supabase.from('sessions').select('*').gte('planned_start_at', new Date().toISOString().slice(0, 10)).order('planned_start_at'));
-const rpc = <T>(name: keyof Database['public']['Functions'], args: Record<string, unknown>) => unwrap<T>(supabase.rpc(name, args as never) as never);
-export const startSession = (id: string) => rpc('start_session', { p_session_id: id });
-export const pauseSession = (id: string) => rpc('pause_session', { p_session_id: id });
-export const resumeSession = (id: string) => rpc('resume_session', { p_session_id: id });
-export const endSession = (id: string, endedEarly: boolean) => rpc('end_session', { p_session_id: id, p_ended_early: endedEarly });
-export const rescheduleSession = (id: string, planned_start_at: string) => unwrap(supabase.from('sessions').update({ planned_start_at }).eq('id', id).select().single());
-export const cancelSession = (id: string) => unwrap(supabase.from('sessions').update({ status: 'CANCELLED' }).eq('id', id).select().single());
+export const createSession = (input: CreateSessionInput) => apiRequest('/api/v3/sessions', { method: 'POST', body: JSON.stringify(input) });
+export const getSession = (id: string) => apiRequest(`/api/v3/sessions/${id}`);
+export const getTodaySessions = () => apiRequest('/api/v3/dashboard/today');
+export const startSession = (id: string) => apiRequest(`/api/v3/sessions/${id}/start`, { method: 'POST' });
+export const pauseSession = (id: string) => apiRequest(`/api/v3/sessions/${id}/pause`, { method: 'POST' });
+export const resumeSession = (id: string) => apiRequest(`/api/v3/sessions/${id}/resume`, { method: 'POST' });
+export const endSession = (id: string, endedEarly: boolean) => apiRequest(`/api/v3/sessions/${id}/end?ended_early=${endedEarly}`, { method: 'POST' });
+export const rescheduleSession = (id: string, planned_start_at: string) => apiRequest(`/api/v3/sessions/${id}`, { method: 'PUT', body: JSON.stringify({ planned_start_at }) });
+export const cancelSession = (id: string) => apiRequest(`/api/v3/sessions/${id}`, { method: 'DELETE' });

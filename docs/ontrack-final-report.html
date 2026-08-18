@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>OnTrack — Báo cáo tích hợp FE/BE</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#5b667a; --line:#dce2ec; --ok:#0f7b4f; --warn:#a45b00; --surface:#f6f8fc; }
+    body { margin:0; background:var(--surface); color:var(--ink); font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { max-width:900px; margin:40px auto; padding:0 22px 48px; }
+    header,section { background:#fff; border:1px solid var(--line); border-radius:14px; padding:24px; margin:16px 0; }
+    h1,h2 { margin:0 0 10px; line-height:1.25; } h1 { font-size:28px; } h2 { font-size:19px; }
+    .meta,p { margin:8px 0; } .meta { color:var(--muted); } .badge { display:inline-block; padding:3px 9px; border-radius:999px; font-weight:700; font-size:12px; }
+    .ok { background:#dff6e9; color:var(--ok); } .warn { background:#fff0d8; color:var(--warn); }
+    table { width:100%; border-collapse:collapse; margin-top:10px; } th,td { text-align:left; padding:10px; border-bottom:1px solid var(--line); vertical-align:top; } th { color:var(--muted); font-size:12px; text-transform:uppercase; }
+    code { background:#eef2f7; border-radius:4px; padding:2px 5px; font-size:.92em; } ul { margin:8px 0; padding-left:20px; }
+  </style>
+</head>
+<body><main>
+  <header>
+    <h1>OnTrack — Báo cáo tích hợp FE / BE</h1>
+    <p class="meta">Ngày kiểm tra: 18/08/2026 · Nhánh làm việc: <code>codex/ontrack-demo-backend</code></p>
+    <p><span class="badge ok">MÃ NGUỒN ĐÃ HỢP NHẤT</span> <span class="badge warn">RUNTIME DB CHƯA XÁC MINH</span></p>
+  </header>
+
+  <section>
+    <h2>Phạm vi đã thực hiện</h2>
+    <ul>
+      <li>Fetch và merge các commit FE mới từ <code>origin/master</code> (đến <code>5e79d20</code>) vào nhánh BE hiện tại, đồng thời lưu lại trạng thái trước merge trong git stash.</li>
+      <li>Giữ FastAPI/PostgreSQL REST API v3 làm backend; không đưa Supabase secret vào app mobile.</li>
+      <li>Đưa các màn hình FE mới: deadline, milestone, task, session, lịch sử và cài đặt vào workspace.</li>
+      <li>Nối tab Plans với <code>GET /api/v3/deadlines</code>; chuyển dữ liệu API thành card UI, lọc/tìm kiếm trên dữ liệu thật và mở chi tiết bằng ID thật.</li>
+      <li>Nối tab Today với <code>GET /api/v3/dashboard/today</code>; hiển thị session kế tiếp, session còn lại, session hoàn thành và risk card từ BE.</li>
+      <li>Chuẩn hóa các route FE cũ để Expo Router typecheck được với cấu trúc file hiện tại.</li>
+      <li>Thêm unit test cho adapter deadline → Plans card.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Kết quả kiểm tra</h2>
+    <table>
+      <thead><tr><th>Kiểm tra</th><th>Kết quả</th><th>Ghi chú</th></tr></thead>
+      <tbody>
+        <tr><td><code>pnpm run typecheck</code></td><td><span class="badge ok">PASS</span></td><td><code>tsc --noEmit</code> kết thúc thành công sau merge.</td></tr>
+        <tr><td><code>pnpm test</code></td><td><span class="badge ok">PASS</span></td><td>3 test domain pass; 10 test integration bị skip vì không có Supabase local, không phải BE REST đang triển khai.</td></tr>
+        <tr><td><code>git diff --check</code></td><td><span class="badge ok">PASS</span></td><td>Không có lỗi whitespace; chỉ có cảnh báo CRLF của Git trên Windows.</td></tr>
+        <tr><td>Docker/PostgreSQL</td><td><span class="badge warn">BLOCKED</span></td><td>Docker daemon không chạy và cổng <code>5432</code> không mở, do đó không thể xác minh health/API end-to-end trong máy hiện tại.</td></tr>
+        <tr><td>Expo web export</td><td><span class="badge warn">NOT RECORDED</span></td><td>Metro khởi chạy nhưng không hoàn tất trong phiên kiểm tra; không dùng kết quả này để khẳng định build web.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Luồng API đã sẵn sàng trong app</h2>
+    <table>
+      <thead><tr><th>Màn hình / hành động</th><th>REST endpoint</th></tr></thead>
+      <tbody>
+        <tr><td>Đăng ký, đăng nhập, đăng xuất, hồ sơ</td><td><code>/api/v3/auth/*</code>, <code>/api/v3/users/me</code></td></tr>
+        <tr><td>Plans và chi tiết Deadline / Milestone / Task</td><td><code>/api/v3/deadlines</code>, <code>/api/v3/milestones</code>, <code>/api/v3/tasks</code></td></tr>
+        <tr><td>Today, session lifecycle và review</td><td><code>/api/v3/dashboard/today</code>, <code>/api/v3/sessions/*</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Bước chạy xác minh còn lại</h2>
+    <ol>
+      <li>Mở Docker Desktop.</li>
+      <li>Từ root chạy <code>docker compose up -d postgres</code>.</li>
+      <li>Từ <code>backend</code> chạy <code>.\.venv\Scripts\python -m uvicorn app.main:app --port 8000</code>.</li>
+      <li>Đặt <code>EXPO_PUBLIC_API_URL=http://&lt;IP-LAN-máy-BE&gt;:8000</code> khi chạy trên thiết bị thật (không dùng <code>localhost</code> của máy tính).</li>
+      <li>Đăng ký một tài khoản mới và kiểm tra chuỗi Deadline → Milestone → Task → Session → Start/End → Review.</li>
+    </ol>
+  </section>
+</main></body></html>

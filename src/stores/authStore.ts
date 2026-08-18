@@ -1,11 +1,13 @@
 import { create } from 'zustand';
-import { Session, User } from '@supabase/supabase-js';
+import type { ApiUser } from '@/lib/api-client';
+
+export type LocalSession = { access_token: string; user: ApiUser };
 
 interface AuthState {
-  session: Session | null;
-  user: User | null;
+  session: LocalSession | null;
+  user: ApiUser | null;
   initialized: boolean;
-  setSession: (session: Session | null) => void;
+  setSession: (session: LocalSession | null) => void;
   setInitialized: (initialized: boolean) => void;
   signOut: () => void;
 }
