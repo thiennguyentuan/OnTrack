@@ -210,15 +210,15 @@ def create_session(body: SessionBody, user: dict[str, Any] = Depends(current_use
 def owned_session(session_id: UUID, user_id: UUID):
     return query('select s.* from sessions s join tasks t on t.id=s.task_id join milestones m on m.id=t.milestone_id join deadlines d on d.id=m.deadline_id where s.id=%s and d.user_id=%s', (session_id, user_id), one=True)
 
+@app.get('/api/v3/sessions/history')
+def session_history(user: dict[str, Any] = Depends(current_user)):
+    return query('select s.*,t.title as task_title from sessions s join tasks t on t.id=s.task_id join milestones m on m.id=t.milestone_id join deadlines d on d.id=m.deadline_id where d.user_id=%s and s.status in (\'COMPLETED\',\'ENDED_EARLY\',\'SKIPPED\') order by s.ended_at desc', (user['id'],))
+
 @app.get('/api/v3/sessions/{session_id}')
 def get_session(session_id: UUID, user: dict[str, Any] = Depends(current_user)):
     session = owned_session(session_id, user['id'])
     if not session: raise HTTPException(404, 'Session not found')
     return session
-
-@app.get('/api/v3/sessions/history')
-def session_history(user: dict[str, Any] = Depends(current_user)):
-    return query('select s.*,t.title as task_title from sessions s join tasks t on t.id=s.task_id join milestones m on m.id=t.milestone_id join deadlines d on d.id=m.deadline_id where d.user_id=%s and s.status in (\'COMPLETED\',\'ENDED_EARLY\',\'SKIPPED\') order by s.ended_at desc', (user['id'],))
 
 @app.put('/api/v3/sessions/{session_id}')
 def update_session(session_id: UUID, body: dict[str, Any], user: dict[str, Any] = Depends(current_user)):

@@ -1,44 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { useAuthStore } from '@/stores/authStore';
 import { useScrollStore } from '@/stores/scrollStore';
 import { authService } from '@/features/auth/authService';
+import { logoutAndClear } from '@/features/auth/logout';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 export default function MeScreen() {
-  const { user } = useAuthStore();
+  const { user, setSession } = useAuthStore();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { meScrollY, setMeScrollY } = useScrollStore();
 
   const handleLogout = async () => {
-    Alert.alert(
-      'Log Out',
-      'Are you sure you want to log out?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Log Out',
-          style: 'destructive',
-          onPress: async () => {
-            setIsLoggingOut(true);
-            try {
-              await authService.signOut();
-            } catch (error) {
-              Alert.alert('Error', error instanceof Error ? error.message : 'Logout failed');
-            } finally {
-              setIsLoggingOut(false);
-            }
-          },
-        },
-      ]
-    );
+    setIsLoggingOut(true);
+    try {
+      await logoutAndClear({ logout: authService.signOut, clearSession: () => setSession(null) });
+      router.replace('/(auth)/login');
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const AVATAR_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuDxixReZkqmWkJxc-4B70efIhlWaQDll6XkGWlMu0UpGTqHYW1tou5Egp8XDLud3ue847yuotMRoggBs9XjSgCjSqWZoZKQXoVJZXyOHnwDMcR1H0e0bUGCTiE-hg9RT9EvXJ_gM-WpouRTh89OFNXZHwfUvqJb7PQs7y26xlv4ru0NMWRhHceBPn0vTiROZ_RaHAYSYGBVjXlKCEQsmi_nhE1wSTza7uo1SHzTTkDFwCCHv4OAdcQokA";

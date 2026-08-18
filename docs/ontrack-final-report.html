@@ -78,6 +78,23 @@
   </section>
 
   <section>
+    <h2>Audit FE team và ma trận kiểm thử đầy đủ</h2>
+    <p><span class="badge ok">ĐÚNG NGUỒN FE</span> <code>origin/master</code> tại commit <code>5e79d20</code> là tổ tiên trực tiếp của nhánh tích hợp. Các thay đổi sau đó chỉ thêm REST integration, route động và sửa lỗi.</p>
+    <table>
+      <thead><tr><th>Nhóm</th><th>Trạng thái</th><th>Bằng chứng</th></tr></thead>
+      <tbody>
+        <tr><td>Auth, Profile API</td><td><span class="badge ok">PASS</span></td><td>Register, login, get/update profile, logout đã gọi API local thành công.</td></tr>
+        <tr><td>Plans CRUD</td><td><span class="badge ok">PASS</span></td><td>Deadline/Milestone/Task create, read, update, delete; route dynamic hiển thị dữ liệu thật.</td></tr>
+        <tr><td>Sessions & Review</td><td><span class="badge ok">PASS</span></td><td>Create/reschedule/start/pause/resume/end/review/follow-up/history/risk đã test qua UI/API.</td></tr>
+        <tr><td>Today & Plans tabs</td><td><span class="badge ok">PASS</span></td><td>Đọc dashboard/deadline từ REST và hiển thị card dữ liệu thật.</td></tr>
+        <tr><td>Profile, History, Settings UI từ FE team</td><td><span class="badge warn">MOCK-ONLY</span></td><td>Hiện còn dùng dữ liệu cố định hoặc state cục bộ; chưa gọi BE nên không thể coi là tính năng production.</td></tr>
+        <tr><td>Legacy detail/create/edit screens từ FE team</td><td><span class="badge warn">MOCK-ONLY</span></td><td>Một số màn chỉ <code>console.log</code> payload; các route động bổ sung mới là luồng REST thật.</td></tr>
+      </tbody>
+    </table>
+    <p>Đã sửa trong audit: đặt <code>/sessions/history</code> trước route UUID trong FastAPI; logout xóa session store và trở về Login.</p>
+  </section>
+
+  <section>
     <h2>Hướng dẫn chạy lại</h2>
     <ol>
       <li>Mở Docker Desktop.</li>
