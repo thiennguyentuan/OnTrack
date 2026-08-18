@@ -1,17 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { typography } from '@/theme/typography';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
 
 // Tổng thời gian mặc định của session (ví dụ: 25 phút = 1500 giây)
 const TOTAL_DURATION_SECONDS = 25 * 60;
@@ -24,14 +16,9 @@ export default function FocusSessionScreen() {
   const [remainingSeconds, setRemainingSeconds] = useState(TOTAL_DURATION_SECONDS);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Animation values cho 2 đốm sáng background
-  const translateX1 = useSharedValue(0);
-  const translateY1 = useSharedValue(0);
-  const scale1 = useSharedValue(1);
-
-  const translateX2 = useSharedValue(0);
-  const translateY2 = useSharedValue(0);
-  const scale2 = useSharedValue(1);
+  // Native Animated values cho 2 đốm sáng background
+  const anim1 = useRef(new Animated.Value(0)).current;
+  const anim2 = useRef(new Animated.Value(0)).current;
 
   // 1. Quản lý đếm ngược (Timer Interval)
   useEffect(() => {
@@ -64,72 +51,96 @@ export default function FocusSessionScreen() {
     Math.max(0, (elapsedSeconds / TOTAL_DURATION_SECONDS) * 100)
   );
 
-  // Animation hiệu ứng đốm sáng
+  // Animation hiệu ứng đốm sáng nền với React Native Animated
   useEffect(() => {
-    translateX1.value = withRepeat(
-      withSequence(
-        withTiming(50, { duration: 4000, easing: Easing.inOut(Easing.quad) }),
-        withTiming(-30, { duration: 5000, easing: Easing.inOut(Easing.quad) }),
-        withTiming(0, { duration: 4000, easing: Easing.inOut(Easing.quad) })
-      ),
-      -1,
-      true
-    );
-    translateY1.value = withRepeat(
-      withSequence(
-        withTiming(-40, { duration: 4500, easing: Easing.inOut(Easing.quad) }),
-        withTiming(30, { duration: 4000, easing: Easing.inOut(Easing.quad) }),
-        withTiming(0, { duration: 4500, easing: Easing.inOut(Easing.quad) })
-      ),
-      -1,
-      true
-    );
-    scale1.value = withRepeat(
-      withSequence(withTiming(1.3, { duration: 5000 }), withTiming(0.9, { duration: 4000 })),
-      -1,
-      true
+    const loop1 = Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim1, {
+          toValue: 1,
+          duration: 4000,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(anim1, {
+          toValue: 0,
+          duration: 4000,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
     );
 
-    translateX2.value = withRepeat(
-      withSequence(
-        withTiming(-60, { duration: 5500, easing: Easing.inOut(Easing.quad) }),
-        withTiming(20, { duration: 4500, easing: Easing.inOut(Easing.quad) }),
-        withTiming(0, { duration: 5000, easing: Easing.inOut(Easing.quad) })
-      ),
-      -1,
-      true
+    const loop2 = Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim2, {
+          toValue: 1,
+          duration: 5000,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(anim2, {
+          toValue: 0,
+          duration: 5000,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
     );
-    translateY2.value = withRepeat(
-      withSequence(
-        withTiming(50, { duration: 5000, easing: Easing.inOut(Easing.quad) }),
-        withTiming(-20, { duration: 4000, easing: Easing.inOut(Easing.quad) }),
-        withTiming(0, { duration: 4500, easing: Easing.inOut(Easing.quad) })
-      ),
-      -1,
-      true
-    );
-    scale2.value = withRepeat(
-      withSequence(withTiming(0.8, { duration: 4500 }), withTiming(1.25, { duration: 5000 })),
-      -1,
-      true
-    );
-  }, []);
 
-  const animatedStyle1 = useAnimatedStyle(() => ({
+    loop1.start();
+    loop2.start();
+
+    return () => {
+      loop1.stop();
+      loop2.stop();
+    };
+  }, [anim1, anim2]);
+
+  const animatedStyle1 = {
     transform: [
-      { translateX: translateX1.value },
-      { translateY: translateY1.value },
-      { scale: scale1.value },
+      {
+        translateX: anim1.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-20, 40],
+        }),
+      },
+      {
+        translateY: anim1.interpolate({
+          inputRange: [0, 1],
+          outputRange: [20, -30],
+        }),
+      },
+      {
+        scale: anim1.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.9, 1.25],
+        }),
+      },
     ],
-  }));
+  };
 
-  const animatedStyle2 = useAnimatedStyle(() => ({
+  const animatedStyle2 = {
     transform: [
-      { translateX: translateX2.value },
-      { translateY: translateY2.value },
-      { scale: scale2.value },
+      {
+        translateX: anim2.interpolate({
+          inputRange: [0, 1],
+          outputRange: [30, -50],
+        }),
+      },
+      {
+        translateY: anim2.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-20, 40],
+        }),
+      },
+      {
+        scale: anim2.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1.2, 0.85],
+        }),
+      },
     ],
-  }));
+  };
 
   // This function is temporary
   const handleCloseEarly = () => {
