@@ -8,7 +8,7 @@ from docx.oxml.ns import qn
 from docx.enum.style import WD_STYLE_TYPE
 from pathlib import Path
 
-OUT = Path('docs/OnTrack_Project_Report_Chapter_Format.docx')
+OUT = Path('docs/OnTrack_Project_Report_Black_Headers.docx')
 
 def shade(cell, fill):
     tcPr = cell._tc.get_or_add_tcPr()
@@ -116,12 +116,12 @@ sec = doc.sections[0]
 sec.top_margin = Inches(0.7); sec.bottom_margin = Inches(0.7); sec.left_margin = Inches(0.85); sec.right_margin = Inches(0.85)
 styles = doc.styles
 styles['Normal'].font.name = 'Aptos'; styles['Normal'].font.size = Pt(10.5)
-for name, size, color in [('Title', 24, '1F4E78'), ('Heading 1', 16, '1F4E78'), ('Heading 2', 13, '2F75B5'), ('Heading 3', 11, '5B9BD5')]:
+for name, size, color in [('Title', 24, '000000'), ('Heading 1', 16, '000000'), ('Heading 2', 13, '000000'), ('Heading 3', 11, '000000')]:
     styles[name].font.name = 'Aptos Display'; styles[name].font.size = Pt(size); styles[name].font.color.rgb = RGBColor.from_string(color)
 
 # Cover
 para = doc.add_paragraph(); para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-r = para.add_run('ONTRACK'); r.bold = True; r.font.size = Pt(30); r.font.color.rgb = RGBColor(31,78,121)
+r = para.add_run('ONTRACK'); r.bold = True; r.font.size = Pt(30); r.font.color.rgb = RGBColor(0, 0, 0)
 para = doc.add_paragraph(); para.alignment = WD_ALIGN_PARAGRAPH.CENTER
 r = para.add_run('A Mobile Deadline and Focus Management Application'); r.bold = True; r.font.size = Pt(18)
 doc.add_paragraph()
