@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,8 +10,9 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { authService } from '@/features/auth/authService';
 import { useAuthStore } from '@/stores/authStore';
-import { MaterialIcons, AntDesign } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter as useExpoRouter } from 'expo-router';
+import { getRegistrationErrorMessage } from '@/features/auth/register-error';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name is required'),
@@ -27,6 +29,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export default function RegisterScreen() {
   const router = useExpoRouter();
   const setSession = useAuthStore((state) => state.setSession);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const {
     control,
     handleSubmit,
@@ -42,12 +45,13 @@ export default function RegisterScreen() {
   });
 
   const onSubmit = async (data: RegisterForm) => {
+    setSubmitError(null);
     try {
       const session = await authService.signUp(data.email, data.password, data.name);
       setSession(session);
       router.replace('/(tabs)/today');
     } catch (error) {
-      Alert.alert('Registration failed', error instanceof Error ? error.message : 'Unable to register');
+      setSubmitError(getRegistrationErrorMessage(error));
     }
   };
 
@@ -150,6 +154,12 @@ export default function RegisterScreen() {
             icon={<MaterialIcons name="arrow-forward" size={20} color={colors.surface} />}
             iconPosition="right"
           />
+          {submitError && (
+            <View accessibilityRole="alert" style={styles.submitError}>
+              <MaterialIcons name="error-outline" size={18} color={colors.danger} />
+              <Text style={styles.submitErrorText}>{submitError}</Text>
+            </View>
+          )}
         </View>
 
         {/* Secondary Actions */}
@@ -161,21 +171,6 @@ export default function RegisterScreen() {
             <MaterialIcons name="arrow-back" size={18} color={colors.primary} />
             <Text style={styles.backBtnText}>Back to Login</Text>
           </TouchableOpacity>
-
-          <View style={styles.dividerContainer}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>OR REGISTER WITH</Text>
-            <View style={styles.divider} />
-          </View>
-
-          <View style={styles.socialContainer}>
-            <TouchableOpacity style={styles.socialBtn}>
-              <AntDesign name="google" size={24} color={colors.text} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialBtn}>
-              <MaterialIcons name="school" size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* Academic Quote Decoration */}
@@ -253,6 +248,23 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
+  },
+  submitError: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#FDECEC',
+    borderWidth: 1,
+    borderColor: '#F5B7B1',
+  },
+  submitErrorText: {
+    flex: 1,
+    color: colors.danger,
+    fontSize: typography.sizes.sm,
+    fontWeight: '600',
   },
   secondaryActions: {
     alignItems: 'center',

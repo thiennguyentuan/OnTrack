@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Image,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,32 +14,49 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
+import { updateSettings } from '@/features/auth/api';
+import { toProfileUpdate } from '@/features/settings/account';
+import { settingsRepository } from '@/features/settings/preferences';
+import { Avatar } from '@/components/ui/Avatar';
 
 export default function AccountScreen() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, session, setSession } = useAuthStore();
 
-  const AVATAR_URL =
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuDxixReZkqmWkJxc-4B70efIhlWaQDll6XkGWlMu0UpGTqHYW1tou5Egp8XDLud3ue847yuotMRoggBs9XjSgCjSqWZoZKQXoVJZXyOHnwDMcR1H0e0bUGCTiE-hg9RT9EvXJ_gM-WpouRTh89OFNXZHwfUvqJb7PQs7y26xlv4ru0NMWRhHceBPn0vTiROZ_RaHAYSYGBVjXlKCEQsmi_nhE1wSTza7uo1SHzTTkDFwCCHv4OAdcQokA';
+  const [fullName, setFullName] = useState(user?.full_name ?? '');
+  const [email] = useState(user?.email ?? '');
+  const [major, setMajor] = useState('');
+  const [graduationYear, setGraduationYear] = useState('');
+  const [timezone, setTimezone] = useState(user?.timezone ?? 'Asia/Ho_Chi_Minh');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [fullName, setFullName] = useState('Alex Rivers');
-  const [email] = useState(user?.email || 'alex.rivers@university.edu');
-  const [major, setMajor] = useState('Computer Science');
-  const [graduationYear, setGraduationYear] = useState('2027');
-  const [timezone, setTimezone] = useState('Asia/Ho_Chi_Minh (GMT+7)');
+  useEffect(() => {
+    settingsRepository.loadAccountDetails().then((details) => {
+      setMajor(details.major);
+      setGraduationYear(details.graduationYear);
+    }).catch(() => undefined);
+  }, []);
 
   const handleBack = () => {
     router.navigate('/(tabs)/me' as any);
   };
 
-  const handleSaveProfile = () => {
-    Alert.alert('Thành công', 'Thông tin tài khoản đã được cập nhật!', [
-      { text: 'OK', onPress: handleBack },
-    ]);
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      const updated = await updateSettings(toProfileUpdate({ fullName, timezone }));
+      await settingsRepository.saveAccountDetails({ major: major.trim(), graduationYear: graduationYear.trim() });
+      if (session) setSession({ ...session, user: updated });
+      Alert.alert('Saved', 'Your account details have been updated.', [{ text: 'OK', onPress: handleBack }]);
+    } catch (error) {
+      Alert.alert('Could not save', error instanceof Error ? error.message : 'Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleChangePassword = () => {
-    Alert.alert('Change Password', 'A password reset link has been sent to your email.');
+    router.push('/settings/change-password' as any);
   };
 
   return (
@@ -61,10 +77,7 @@ export default function AccountScreen() {
         {/* Avatar & Profile Card */}
         <View style={styles.avatarSection}>
           <View style={styles.avatarContainer}>
-            <Image source={{ uri: AVATAR_URL }} style={styles.avatarImage} />
-            <TouchableOpacity style={styles.editAvatarBadge}>
-              <MaterialIcons name="photo-camera" size={16} color="#FFFFFF" />
-            </TouchableOpacity>
+            <Avatar name={fullName} email={email} size={96} />
           </View>
           <Text style={styles.userName}>{fullName}</Text>
           <Text style={styles.userRole}>{email}</Text>
@@ -154,24 +167,15 @@ export default function AccountScreen() {
               <MaterialIcons name="chevron-right" size={22} color="#94A3B8" />
             </TouchableOpacity>
 
-            <View style={styles.divider} />
-
-            <TouchableOpacity style={styles.actionRow}>
-              <View style={styles.actionLeft}>
-                <MaterialIcons name="devices" size={20} color="#64748B" />
-                <Text style={styles.actionTitle}>Active Devices</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={22} color="#94A3B8" />
-            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
 
       {/* Footer CTA */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.saveBtn} activeOpacity={0.85} onPress={handleSaveProfile}>
+        <TouchableOpacity style={styles.saveBtn} activeOpacity={0.85} onPress={handleSaveProfile} disabled={isSaving}>
           <MaterialIcons name="check" size={20} color="#FFFFFF" />
-          <Text style={styles.saveBtnText}>Update Account</Text>
+          <Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Update Account'}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

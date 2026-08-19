@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
+import { notificationDefaults, settingsRepository } from '@/features/settings/preferences';
+import { syncScheduledNotifications } from '@/features/notifications/service';
 
 export default function NotificationSettingsScreen() {
   const router = useRouter();
@@ -26,16 +28,61 @@ export default function NotificationSettingsScreen() {
   const [weeklyReport, setWeeklyReport] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
+  const [sessionReminderMinutes, setSessionReminderMinutes] = useState(notificationDefaults.sessionReminderMinutes);
+  const [deadlineAlertDays, setDeadlineAlertDays] = useState(notificationDefaults.deadlineAlertDays);
+  const [dailyDigestHour, setDailyDigestHour] = useState(notificationDefaults.dailyDigestHour);
+  const [scheduled, setScheduled] = useState<number | null>(null);
+
+  useEffect(() => {
+    settingsRepository.loadNotifications().then((preferences) => {
+      setAllowAll(preferences.allowAll); setDailyDigest(preferences.dailyDigest); setUpcomingDeadline(preferences.upcomingDeadline);
+      setSessionReminders(preferences.sessionReminders); setRiskAlerts(preferences.riskAlerts); setWeeklyReport(preferences.weeklyReport);
+      setSoundEnabled(preferences.soundEnabled); setVibrationEnabled(preferences.vibrationEnabled);
+      setSessionReminderMinutes(preferences.sessionReminderMinutes); setDeadlineAlertDays(preferences.deadlineAlertDays);
+      setDailyDigestHour(preferences.dailyDigestHour);
+    }).catch(() => undefined);
+  }, []);
 
   const handleBack = () => {
     router.navigate('/(tabs)/me' as any);
   };
 
-  const handleSave = () => {
-    Alert.alert('Success', 'Notification preferences updated successfully!', [
-      { text: 'OK', onPress: handleBack },
-    ]);
+  const handleSave = async () => {
+    const preferences = {
+      allowAll, dailyDigest, upcomingDeadline, sessionReminders, riskAlerts, weeklyReport,
+      soundEnabled, vibrationEnabled, sessionReminderMinutes, deadlineAlertDays, dailyDigestHour,
+    };
+    await settingsRepository.saveNotifications(preferences);
+    const count = await syncScheduledNotifications({ preferences });
+    setScheduled(count);
+    Alert.alert(
+      'Notifications updated',
+      allowAll
+        ? `${count} reminder${count === 1 ? '' : 's'} scheduled.`
+        : 'All reminders are switched off.',
+      [{ text: 'OK', onPress: handleBack }],
+    );
   };
+
+  const stepper = (
+    label: string,
+    value: string,
+    onDown: () => void,
+    onUp: () => void,
+  ) => (
+    <View style={styles.stepperRow}>
+      <Text style={styles.stepperLabel}>{label}</Text>
+      <View style={styles.stepper}>
+        <TouchableOpacity disabled={!allowAll} style={styles.stepBtn} onPress={onDown}>
+          <MaterialIcons name="remove" size={18} color={colors.primary} />
+        </TouchableOpacity>
+        <Text style={styles.stepperValue}>{value}</Text>
+        <TouchableOpacity disabled={!allowAll} style={styles.stepBtn} onPress={onUp}>
+          <MaterialIcons name="add" size={18} color={colors.primary} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -84,7 +131,7 @@ export default function NotificationSettingsScreen() {
                 </View>
                 <View style={styles.rowTextContainer}>
                   <Text style={styles.rowTitle}>Daily Morning Digest</Text>
-                  <Text style={styles.rowDesc}>Receive daily schedule plan at 8:00 AM</Text>
+                  <Text style={styles.rowDesc}>A recap of your day at {String(dailyDigestHour).padStart(2, '0')}:00</Text>
                 </View>
               </View>
               <Switch
@@ -106,7 +153,7 @@ export default function NotificationSettingsScreen() {
                 </View>
                 <View style={styles.rowTextContainer}>
                   <Text style={styles.rowTitle}>Upcoming Deadlines</Text>
-                  <Text style={styles.rowDesc}>Reminders 24h & 3h before due time</Text>
+                  <Text style={styles.rowDesc}>{deadlineAlertDays} day{deadlineAlertDays === 1 ? '' : 's'} before each due date</Text>
                 </View>
               </View>
               <Switch
@@ -128,7 +175,7 @@ export default function NotificationSettingsScreen() {
                 </View>
                 <View style={styles.rowTextContainer}>
                   <Text style={styles.rowTitle}>Focus Session Starts</Text>
-                  <Text style={styles.rowDesc}>10 minutes notice before scheduled session</Text>
+                  <Text style={styles.rowDesc}>{sessionReminderMinutes} minutes before each planned session</Text>
                 </View>
               </View>
               <Switch
@@ -150,7 +197,7 @@ export default function NotificationSettingsScreen() {
                 </View>
                 <View style={styles.rowTextContainer}>
                   <Text style={styles.rowTitle}>At-Risk Warnings</Text>
-                  <Text style={styles.rowDesc}>Immediate alert when progress lags behind schedule</Text>
+                  <Text style={styles.rowDesc}>A morning alert when a deadline falls behind pace</Text>
                 </View>
               </View>
               <Switch
@@ -162,6 +209,36 @@ export default function NotificationSettingsScreen() {
               />
             </View>
           </View>
+        </View>
+
+        {/* Timing */}
+        <View style={[styles.section, !allowAll && styles.sectionDisabled]}>
+          <Text style={styles.sectionHeader}>WHEN TO NOTIFY</Text>
+          <View style={styles.card}>
+            {stepper(
+              'Session reminder',
+              `${sessionReminderMinutes} min before`,
+              () => setSessionReminderMinutes((value) => Math.max(5, value - 5)),
+              () => setSessionReminderMinutes((value) => Math.min(120, value + 5)),
+            )}
+            <View style={styles.divider} />
+            {stepper(
+              'Deadline alert',
+              `${deadlineAlertDays} day${deadlineAlertDays === 1 ? '' : 's'} before`,
+              () => setDeadlineAlertDays((value) => Math.max(1, value - 1)),
+              () => setDeadlineAlertDays((value) => Math.min(14, value + 1)),
+            )}
+            <View style={styles.divider} />
+            {stepper(
+              'Daily summary',
+              `${String(dailyDigestHour).padStart(2, '0')}:00`,
+              () => setDailyDigestHour((value) => (value + 23) % 24),
+              () => setDailyDigestHour((value) => (value + 1) % 24),
+            )}
+          </View>
+          {scheduled !== null && (
+            <Text style={styles.scheduledNote}>{scheduled} reminder{scheduled === 1 ? '' : 's'} currently scheduled.</Text>
+          )}
         </View>
 
         {/* Sound & Vibration */}
@@ -223,7 +300,7 @@ export default function NotificationSettingsScreen() {
                 </View>
                 <View style={styles.rowTextContainer}>
                   <Text style={styles.rowTitle}>Weekly Productivity Report</Text>
-                  <Text style={styles.rowDesc}>Get a recap every Sunday evening</Text>
+                  <Text style={styles.rowDesc}>A weekly recap every Monday at {String(dailyDigestHour).padStart(2, '0')}:00</Text>
                 </View>
               </View>
               <Switch
@@ -250,6 +327,12 @@ export default function NotificationSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
+  stepperRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: 16 },
+  stepperLabel: { color: colors.text, fontSize: 15, fontWeight: '600', flex: 1 },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  stepBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EAF1FD' },
+  stepperValue: { color: colors.text, fontSize: 14, fontWeight: '700', minWidth: 96, textAlign: 'center' },
+  scheduledNote: { color: colors.muted, fontSize: 13, marginTop: 8, marginLeft: 4 },
   container: {
     flex: 1,
     backgroundColor: '#F9F9F9',

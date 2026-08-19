@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Image,
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
@@ -14,9 +13,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { listDeadlines } from '@/features/plans/api';
-import { toPlanItem } from '@/features/plans/presentation';
+import { loadPlanItems } from '@/features/plans/load-plan-items';
+import { Avatar } from '@/components/ui/Avatar';
+import { useAuthStore } from '@/stores/authStore';
 
 export type PlanFilterType = 'ALL' | 'ACTIVE' | 'AT_RISK' | 'COMPLETED';
 
@@ -33,60 +34,8 @@ export interface PlanItem {
   progress: number;
 }
 
-const INITIAL_DEADLINES: PlanItem[] = [
-  {
-    id: 'dl1',
-    title: 'Human-Computer Interaction Final',
-    category: 'AT_RISK',
-    statusLabel: 'AT RISK',
-    statusColor: colors.danger,
-    statusBg: colors.danger + '20',
-    borderColor: colors.danger,
-    daysLeft: 2,
-    daysLeftLabel: 'days left',
-    progress: 65,
-  },
-  {
-    id: 'dl2',
-    title: 'Machine Learning Lab Report',
-    category: 'ACTIVE',
-    statusLabel: 'ACTIVE',
-    statusColor: colors.secondary,
-    statusBg: colors.secondary + '20',
-    borderColor: colors.primary,
-    daysLeft: 5,
-    daysLeftLabel: 'days left',
-    progress: 30,
-  },
-  {
-    id: 'dl3',
-    title: 'Advanced Algorithms Quiz',
-    category: 'ACTIVE',
-    statusLabel: 'ACTIVE',
-    statusColor: colors.muted,
-    statusBg: '#F1F5F9',
-    borderColor: colors.tertiary,
-    daysLeft: 12,
-    daysLeftLabel: 'days left',
-    progress: 10,
-  },
-  {
-    id: 'dl4',
-    title: 'Database Systems Midterm Project',
-    category: 'COMPLETED',
-    statusLabel: 'COMPLETED',
-    statusColor: colors.success,
-    statusBg: colors.success + '20',
-    borderColor: colors.success,
-    daysLeft: 0,
-    daysLeftLabel: 'completed',
-    progress: 100,
-  },
-];
-
 export default function PlansScreen() {
-  const AVATAR_URL =
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuDxixReZkqmWkJxc-4B70efIhlWaQDll6XkGWlMu0UpGTqHYW1tou5Egp8XDLud3ue847yuotMRoggBs9XjSgCjSqWZoZKQXoVJZXyOHnwDMcR1H0e0bUGCTiE-hg9RT9EvXJ_gM-WpouRTh89OFNXZHwfUvqJb7PQs7y26xlv4ru0NMWRhHceBPn0vTiROZ_RaHAYSYGBVjXlKCEQsmi_nhE1wSTza7uo1SHzTTkDFwCCHv4OAdcQokA';
+  const { user } = useAuthStore();
   const router = useRouter();
   const [selectedFilter, setSelectedFilter] = useState<PlanFilterType>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -95,14 +44,16 @@ export default function PlansScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     let active = true;
-    listDeadlines()
-      .then((items: any) => active && setDeadlines((items ?? []).map((item: any) => toPlanItem(item))))
+    setLoading(true);
+    setError(null);
+    loadPlanItems(listDeadlines)
+      .then((items) => active && setDeadlines(items))
       .catch((cause: any) => active && setError(cause?.message ?? 'Unable to load plans.'))
       .finally(() => active && setLoading(false));
     return () => { active = false; };
-  }, []);
+  }, []));
 
   const handleOpenDetailDeadline = (deadlineId: string) => {
     router.push(`/deadline/${deadlineId}` as any);
@@ -170,10 +121,10 @@ export default function PlansScreen() {
       {/* Top App Bar */}
       <View style={styles.appBar}>
         <View style={styles.logoContainer}>
-          <Image source={{ uri: AVATAR_URL }} style={styles.avatarMini} />
+          <Avatar name={user?.full_name} email={user?.email} />
           <Text style={styles.logoText}>OnTrack</Text>
         </View>
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/settings/notification-settings' as any)}>
           <MaterialIcons name="notifications" size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>

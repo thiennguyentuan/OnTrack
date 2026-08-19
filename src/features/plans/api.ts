@@ -1,4 +1,5 @@
 import { apiRequest } from '../../lib/api-client';
+import type { DeadlineCardSource } from './presentation';
 
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
 export type DeadlineStatus = 'PLANNING' | 'IN_PROGRESS' | 'AT_RISK' | 'COMPLETED' | 'OVERDUE';
@@ -7,13 +8,16 @@ export type TaskStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLE
 export type DeadlineInput = { title: string; description?: string | null; due_at: string; priority: Priority };
 export type MilestoneInput = { deadline_id: string; title: string; description?: string | null; target_at: string; position?: number };
 export type TaskInput = { milestone_id: string; title: string; description?: string | null; priority: Priority; position?: number };
-export const listDeadlines = () => apiRequest('/api/v3/deadlines');
+export const listDeadlines = () => apiRequest<DeadlineCardSource[]>('/api/v3/deadlines');
 export const getDeadline = (id: string) => apiRequest(`/api/v3/deadlines/${id}`);
 export const getTask = (id: string) => apiRequest(`/api/v3/tasks/${id}`);
+export type TaskOption = { id: string; title: string; current_progress: number; milestone_title: string; deadline_id: string; deadline_title: string };
+export const listTasks = (includeCompleted = false) => apiRequest<TaskOption[]>(`/api/v3/tasks?include_completed=${includeCompleted}`);
 export const createDeadline = (input: DeadlineInput) => apiRequest('/api/v3/deadlines', { method: 'POST', body: JSON.stringify(input) });
 export const updateDeadline = (id: string, input: Partial<DeadlineInput>) => apiRequest(`/api/v3/deadlines/${id}`, { method: 'PUT', body: JSON.stringify(input) });
 export const deleteDeadline = (id: string) => apiRequest(`/api/v3/deadlines/${id}`, { method: 'DELETE' });
 export const createMilestone = (input: MilestoneInput) => apiRequest('/api/v3/milestones', { method: 'POST', body: JSON.stringify(input) });
+export const getMilestone = (id: string) => apiRequest(`/api/v3/milestones/${id}`);
 export const updateMilestone = (id: string, input: Partial<MilestoneInput>) => apiRequest(`/api/v3/milestones/${id}`, { method: 'PUT', body: JSON.stringify(input) });
 export const deleteMilestone = (id: string) => apiRequest(`/api/v3/milestones/${id}`, { method: 'DELETE' });
 export const createTask = (input: TaskInput) => apiRequest('/api/v3/tasks', { method: 'POST', body: JSON.stringify(input) });

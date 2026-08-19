@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
@@ -8,20 +8,29 @@ interface CustomSplashScreenProps {
   isReady: boolean;
 }
 
+const MINIMUM_VISIBLE_MS = 1200;
+
 export default function CustomSplashScreen({ onFinish, isReady }: CustomSplashScreenProps) {
   const progress = useRef(new Animated.Value(0)).current;
+  const [minimumElapsed, setMinimumElapsed] = useState(false);
 
+  // Runs exactly once: `progress` is a ref, so a re-render cannot restart the bar.
   useEffect(() => {
-    Animated.timing(progress, {
+    const animation = Animated.timing(progress, {
       toValue: 100,
-      duration: 2000, // 2s loading simulation
+      duration: MINIMUM_VISIBLE_MS,
       useNativeDriver: false,
-    }).start(() => {
-      if (isReady) {
-        onFinish();
-      }
     });
-  }, [isReady, onFinish, progress]);
+    animation.start();
+    const timer = setTimeout(() => setMinimumElapsed(true), MINIMUM_VISIBLE_MS);
+    return () => { animation.stop(); clearTimeout(timer); };
+  }, [progress]);
+
+  // Leaving is a condition, not an animation callback. Tying it to the callback
+  // meant any re-render restarted the timer and the splash never handed over.
+  useEffect(() => {
+    if (minimumElapsed && isReady) onFinish();
+  }, [minimumElapsed, isReady, onFinish]);
 
   const width = progress.interpolate({
     inputRange: [0, 100],

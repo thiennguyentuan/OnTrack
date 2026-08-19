@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
@@ -7,13 +7,37 @@ import { useAuthStore } from '@/stores/authStore';
 import { useScrollStore } from '@/stores/scrollStore';
 import { authService } from '@/features/auth/authService';
 import { logoutAndClear } from '@/features/auth/logout';
+import { getProfile } from '@/features/auth/api';
+import { getSessionHistory } from '@/features/dashboard/api';
+import { listDeadlines } from '@/features/plans/api';
+import { formatFocusDuration, summarizeSessionHistory, weeklyFocusSeries } from '@/features/dashboard/history-presentation';
+import { Avatar } from '@/components/ui/Avatar';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 export default function MeScreen() {
   const { user, setSession } = useAuthStore();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [profile, setProfile] = useState(user);
+  const [summary, setSummary] = useState({ completedSessions: 0, focusMinutes: 0, completedDeadlines: 0 });
+  const [focusSeries, setFocusSeries] = useState(() => weeklyFocusSeries([]));
   const { meScrollY, setMeScrollY } = useScrollStore();
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([getProfile(), getSessionHistory(), listDeadlines()])
+      .then(([currentProfile, sessions, deadlines]) => {
+        if (!active) return;
+        setProfile(currentProfile);
+        setFocusSeries(weeklyFocusSeries(sessions as any[]));
+        setSummary({
+          ...summarizeSessionHistory(sessions as any[]),
+          completedDeadlines: (deadlines as Array<{ status?: string }>).filter((deadline) => deadline.status === 'COMPLETED').length,
+        });
+      })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, []);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -25,17 +49,15 @@ export default function MeScreen() {
     }
   };
 
-  const AVATAR_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuDxixReZkqmWkJxc-4B70efIhlWaQDll6XkGWlMu0UpGTqHYW1tou5Egp8XDLud3ue847yuotMRoggBs9XjSgCjSqWZoZKQXoVJZXyOHnwDMcR1H0e0bUGCTiE-hg9RT9EvXJ_gM-WpouRTh89OFNXZHwfUvqJb7PQs7y26xlv4ru0NMWRhHceBPn0vTiROZ_RaHAYSYGBVjXlKCEQsmi_nhE1wSTza7uo1SHzTTkDFwCCHv4OAdcQokA";
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Top App Bar */}
       <View style={styles.appBar}>
         <View style={styles.logoContainer}>
-          <Image source={{ uri: AVATAR_URL }} style={styles.avatarMini} />
+          <Avatar name={profile?.full_name} email={profile?.email} />
           <Text style={styles.logoText}>OnTrack</Text>
         </View>
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/settings/notification-settings' as any)}>
           <MaterialIcons name="notifications" size={24} color={colors.muted} />
         </TouchableOpacity>
       </View>
@@ -53,8 +75,8 @@ export default function MeScreen() {
       >
         {/* Profile Identity */}
         <View style={styles.profileSection}>
-          <Text style={styles.profileName}>Alex Rivers</Text>
-          <Text style={styles.profileSubtitle}>Computer Science Junior</Text>
+          <Text style={styles.profileName}>{profile?.full_name || 'Your profile'}</Text>
+          <Text style={styles.profileSubtitle}>{profile?.email || 'Loading account details…'}</Text>
         </View>
 
         {/* Weekly Summary Bento */}
@@ -62,14 +84,14 @@ export default function MeScreen() {
           <View style={styles.bentoCard}>
             <MaterialIcons name="timer" size={32} color={colors.primary} />
             <View style={styles.bentoTextContainer}>
-              <Text style={[styles.bentoValue, { color: colors.primary }]}>8</Text>
+              <Text style={[styles.bentoValue, { color: colors.primary }]}>{summary.completedSessions}</Text>
               <Text style={styles.bentoLabel}>Sessions completed</Text>
             </View>
           </View>
           <View style={styles.bentoCard}>
             <MaterialIcons name="task-alt" size={32} color={colors.secondary} />
             <View style={styles.bentoTextContainer}>
-              <Text style={[styles.bentoValue, { color: colors.secondary }]}>2</Text>
+              <Text style={[styles.bentoValue, { color: colors.secondary }]}>{summary.completedDeadlines}</Text>
               <Text style={styles.bentoLabel}>Deadlines finished</Text>
             </View>
           </View>
@@ -79,77 +101,63 @@ export default function MeScreen() {
         <View style={styles.focusCard}>
           <View style={styles.focusHeader}>
             <View>
-              <Text style={styles.focusTitle}>Weekly Focus</Text>
-              <Text style={styles.focusSubtitle}>Hours spent in deep work</Text>
+              <Text style={styles.focusTitle}>Focus History</Text>
+              <Text style={styles.focusSubtitle}>Last 7 days</Text>
             </View>
-            <Text style={styles.focusValue}>24.5h</Text>
+            <Text style={styles.focusValue}>{formatFocusDuration(summary.focusMinutes)}</Text>
           </View>
 
-          {/* Simple Bar Chart Placeholder */}
           <View style={styles.chartContainer}>
-            {[40, 65, 90, 55, 80, 30, 20].map((height, index) => {
-              const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-              const isToday = index === 2; // W
-              return (
-                <View key={index} style={styles.barColumn}>
-                  <View style={[
-                    styles.bar,
-                    { height: `${height}%`, backgroundColor: isToday ? colors.primary : colors.border }
-                  ]} />
-                  <Text style={styles.barLabel}>{days[index]}</Text>
-                </View>
-              );
-            })}
+            {focusSeries.map((day, index) => (
+              <View key={index} style={styles.barColumn}>
+                <View style={[
+                  styles.bar,
+                  { height: `${day.height}%`, backgroundColor: day.isToday ? colors.primary : colors.border }
+                ]} />
+                <Text style={styles.barLabel}>{day.label}</Text>
+              </View>
+            ))}
           </View>
         </View>
 
         {/* Navigation Links */}
         <View style={styles.linksContainer}>
-          <TouchableOpacity style={styles.linkCard} onPress={() => router.push("/history/history" as any)}>
-            <View style={styles.linkLeft}>
-              <View style={styles.linkIconBg}>
-                <MaterialIcons name="history" size={24} color={colors.muted} />
-              </View>
-              <Text style={styles.linkText}>History</Text>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color={colors.border} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.linkCard}
-            onPress={() => router.push('/settings/notification-settings' as any)}
-          >
-            <View style={styles.linkLeft}>
-              <View style={styles.linkIconBg}>
-                <MaterialIcons name="notifications-active" size={24} color={colors.muted} />
-              </View>
-              <Text style={styles.linkText}>Notification Settings</Text>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color={colors.border} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.linkCard}
-            onPress={() => router.push('/settings/focus-settings' as any)}
-          >
-            <View style={styles.linkLeft}>
-              <View style={styles.linkIconBg}>
-                <MaterialIcons name="center-focus-strong" size={24} color={colors.muted} />
-              </View>
-              <Text style={styles.linkText}>Focus Settings</Text>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color={colors.border} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.linkCard}
-            onPress={() => router.push('/settings/account' as any)}
-          >
+          <TouchableOpacity style={styles.linkCard} onPress={() => router.push('/settings/account' as any)}>
             <View style={styles.linkLeft}>
               <View style={styles.linkIconBg}>
                 <MaterialIcons name="person" size={24} color={colors.muted} />
               </View>
               <Text style={styles.linkText}>Account</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={colors.border} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.linkCard} onPress={() => router.push('/settings/notification-settings' as any)}>
+            <View style={styles.linkLeft}>
+              <View style={styles.linkIconBg}>
+                <MaterialIcons name="notifications-active" size={24} color={colors.muted} />
+              </View>
+              <Text style={styles.linkText}>Notifications</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={colors.border} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.linkCard} onPress={() => router.push('/settings/focus-settings' as any)}>
+            <View style={styles.linkLeft}>
+              <View style={styles.linkIconBg}>
+                <MaterialIcons name="center-focus-strong" size={24} color={colors.muted} />
+              </View>
+              <Text style={styles.linkText}>Focus Mode Settings</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={colors.border} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.linkCard} onPress={() => router.push('/settings/appearance' as any)}>
+            <View style={styles.linkLeft}>
+              <View style={styles.linkIconBg}>
+                <MaterialIcons name="palette" size={24} color={colors.muted} />
+              </View>
+              <Text style={styles.linkText}>Appearance</Text>
             </View>
             <MaterialIcons name="chevron-right" size={24} color={colors.border} />
           </TouchableOpacity>

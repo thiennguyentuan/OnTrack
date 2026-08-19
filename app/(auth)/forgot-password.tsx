@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter as useExpoRouter } from 'expo-router';
 import { useState } from 'react';
+import { requestPasswordReset } from '@/features/auth/api';
 
 const forgotPasswordSchema = z.object({
   email: z.string().min(1, 'Please enter your email').email('Invalid email address'),
@@ -20,6 +21,7 @@ type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPasswordScreen() {
   const router = useExpoRouter();
   const [isSuccess, setIsSuccess] = useState(false);
+  const [requestError, setRequestError] = useState('');
   
   const {
     control,
@@ -33,13 +35,13 @@ export default function ForgotPasswordScreen() {
   });
 
   const onSubmit = async (data: ForgotPasswordForm) => {
-    // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        setIsSuccess(true);
-        resolve(true);
-      }, 1000);
-    });
+    setRequestError('');
+    try {
+      await requestPasswordReset(data.email);
+      setIsSuccess(true);
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : 'Unable to request a password reset.');
+    }
   };
 
   return (
@@ -104,6 +106,7 @@ export default function ForgotPasswordScreen() {
                 icon={<MaterialIcons name="mail-outline" size={20} color={colors.surface} />}
                 iconPosition="right"
               />
+              {requestError ? <Text style={styles.errorText}>{requestError}</Text> : null}
             </>
           )}
         </View>
@@ -197,6 +200,11 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: '500',
     marginBottom: 24,
+    textAlign: 'center',
+  },
+  errorText: {
+    color: '#BA1A1A',
+    marginTop: 12,
     textAlign: 'center',
   },
 });

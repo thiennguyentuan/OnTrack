@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
+import { settingsRepository } from '@/features/settings/preferences';
 
 const FOCUS_DURATIONS = [25, 45, 60, 90];
 const BREAK_DURATIONS = [5, 10, 15];
@@ -29,11 +30,24 @@ export default function FocusSettingsScreen() {
   const [blockDistractions, setBlockDistractions] = useState(true);
   const [ambientSound, setAmbientSound] = useState<'none' | 'rain' | 'whitenoise' | 'cafe'>('whitenoise');
 
+  useEffect(() => {
+    settingsRepository.loadFocus().then((preferences) => {
+      setSelectedFocusDuration(preferences.focusMinutes); setSelectedBreakDuration(preferences.breakMinutes);
+      setAutoStartBreak(preferences.autoStartBreak); setAutoStartNextSession(preferences.autoStartNextSession);
+      setDoNotDisturb(preferences.doNotDisturb); setBlockDistractions(preferences.blockDistractions);
+      setAmbientSound(preferences.ambientSound);
+    }).catch(() => undefined);
+  }, []);
+
   const handleBack = () => {
     router.navigate('/(tabs)/me' as any);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    await settingsRepository.saveFocus({
+      focusMinutes: selectedFocusDuration, breakMinutes: selectedBreakDuration, autoStartBreak, autoStartNextSession,
+      doNotDisturb, blockDistractions, ambientSound,
+    });
     Alert.alert('Success', 'Focus session preferences saved successfully!', [
       { text: 'OK', onPress: handleBack },
     ]);

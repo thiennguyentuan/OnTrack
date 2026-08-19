@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { getSessionHistory } from '@/features/dashboard/api';
+import { getProfile } from '@/features/auth/api';
+import { toHistoryTasks } from '@/features/dashboard/history-presentation';
+import { Avatar } from '@/components/ui/Avatar';
 
 export interface UserProfile {
   id: string;
@@ -46,6 +49,7 @@ export interface Session {
   ended_at?: string | null;
   actual_minutes: number | null;
   result_note?: string | null;
+  task_title?: string | null;
 }
 
 interface HistoryScreenProps {
@@ -56,19 +60,35 @@ interface HistoryScreenProps {
 }
 
 export default function HistoryScreen({
-  sessions = [],
-  tasks = [],
-  profile = {
-    id: 'user-1',
-    full_name: 'User',
-    avatar_url: '',
-  },
+  sessions: suppliedSessions,
+  tasks: suppliedTasks,
+  profile: suppliedProfile,
   onBack,
 }: HistoryScreenProps) {
   const router = useRouter();
+  const [sessions, setSessions] = useState<Session[]>(suppliedSessions ?? []);
+  const [profile, setProfile] = useState<UserProfile>(suppliedProfile ?? { id: '', full_name: '', avatar_url: '' });
+  const [isLoading, setIsLoading] = useState(!suppliedSessions);
+  const [loadError, setLoadError] = useState('');
   const [activeFocusFilter, setActiveFocusFilter] = useState<'ALL' | 'HIGH' | 'NORMAL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchInput, setShowSearchInput] = useState(false);
+  const tasks = suppliedTasks ?? toHistoryTasks(sessions);
+
+  useEffect(() => {
+    if (suppliedSessions) return;
+    let active = true;
+    Promise.all([getSessionHistory(), getProfile()])
+      .then(([history, currentProfile]) => {
+        if (!active) return;
+        setSessions(history as Session[]);
+        const user = currentProfile as { id: string; full_name: string; email?: string };
+        setProfile({ id: user.id, full_name: user.full_name, email: user.email, avatar_url: '' });
+      })
+      .catch((error: Error) => active && setLoadError(error.message || 'Could not load session history.'))
+      .finally(() => active && setIsLoading(false));
+    return () => { active = false; };
+  }, [suppliedSessions]);
 
   // Map tasks by ID for quick lookup
   const taskMap = useMemo(() => {
@@ -164,13 +184,7 @@ export default function HistoryScreen({
             />
           </TouchableOpacity>
 
-          <View style={styles.avatarContainer}>
-            {profile.avatar_url ? (
-              <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
-            ) : (
-              <Text style={styles.avatarText}>{profile.full_name.charAt(0)}</Text>
-            )}
-          </View>
+          <Avatar name={profile.full_name} email={profile.email} />
         </View>
       </View>
 
@@ -178,6 +192,8 @@ export default function HistoryScreen({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {isLoading ? <Text style={styles.loadState}>Loading your history…</Text> : null}
+        {loadError ? <Text style={styles.errorState}>{loadError}</Text> : null}
         {/* Horizontal Filters Section */}
         <ScrollView
           horizontal
@@ -452,6 +468,16 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingBottom: 32,
+  },
+  loadState: {
+    color: '#64748B',
+    textAlign: 'center',
+    paddingTop: 16,
+  },
+  errorState: {
+    color: '#B42318',
+    textAlign: 'center',
+    paddingTop: 16,
   },
 
   /* Filter Section */

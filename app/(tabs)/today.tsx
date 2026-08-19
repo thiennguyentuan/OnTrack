@@ -1,408 +1,210 @@
-import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
-import { useRouter } from 'expo-router';
 import { getTodayDashboard } from '@/features/dashboard/api';
+import {
+  filterTodaySessions,
+  formatSessionTime,
+  groupTodaySessions,
+  TODAY_FILTERS,
+  todayFilterCounts,
+  type TodayFilter,
+  type TodaySession,
+} from '@/features/dashboard/today-presentation';
+import { Avatar } from '@/components/ui/Avatar';
+
+const focusLabel = (mode?: string | null) => (mode === 'HIGH' ? 'High Focus' : 'Normal Focus');
 
 export default function TodayScreen() {
   const { user } = useAuthStore();
-  const avatarLetter = user?.email ? user.email.charAt(0).toUpperCase() : 'A';
   const router = useRouter();
-  const AVATAR_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuDxixReZkqmWkJxc-4B70efIhlWaQDll6XkGWlMu0UpGTqHYW1tou5Egp8XDLud3ue847yuotMRoggBs9XjSgCjSqWZoZKQXoVJZXyOHnwDMcR1H0e0bUGCTiE-hg9RT9EvXJ_gM-WpouRTh89OFNXZHwfUvqJb7PQs7y26xlv4ru0NMWRhHceBPn0vTiROZ_RaHAYSYGBVjXlKCEQsmi_nhE1wSTza7uo1SHzTTkDFwCCHv4OAdcQokA";
-  const [dashboard, setDashboard] = useState<any>();
+  const [sessions, setSessions] = useState<TodaySession[]>([]);
+  const [filter, setFilter] = useState<TodayFilter>('ALL');
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    getTodayDashboard().then(setDashboard).catch((cause: any) => setError(cause?.message ?? 'Unable to load today.'));
-  }, []);
-  const sessions = dashboard?.sessions ?? [];
-  const nextSession = dashboard?.next_session ?? sessions.find((item: any) => ['PLANNED', 'IN_PROGRESS', 'PAUSED'].includes(item.status));
-  const laterSessions = sessions.filter((item: any) => item.id !== nextSession?.id && !['COMPLETED', 'ENDED_EARLY'].includes(item.status));
-  const completedSessions = sessions.filter((item: any) => ['COMPLETED', 'ENDED_EARLY'].includes(item.status));
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleStartSession = (sessionId: string) => {
-    router.push(`/session/${sessionId}` as any)
-  }
+  const load = useCallback(async () => {
+    try {
+      const dashboard: any = await getTodayDashboard();
+      setSessions(dashboard?.sessions ?? []);
+      setError(null);
+    } catch (cause: any) {
+      setError(cause?.message ?? 'Unable to load today.');
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
+
+  const counts = useMemo(() => todayFilterCounts(sessions), [sessions]);
+  const groups = useMemo(() => groupTodaySessions(sessions), [sessions]);
+  const filtered = useMemo(() => filterTodaySessions(sessions, filter), [sessions, filter]);
+
+  const open = (session: TodaySession) => router.push(`/session/${session.id}` as any);
+
+  const renderCard = (session: TodaySession, action?: { label: string; icon: keyof typeof MaterialIcons.glyphMap }) => (
+    <TouchableOpacity key={session.id} style={styles.card} onPress={() => open(session)}>
+      <View style={styles.cardLeft}>
+        <View style={[styles.dot, session.focus_mode === 'HIGH' && styles.dotHigh]} />
+        <View style={styles.flex}>
+          <Text style={styles.cardTitle}>{session.task_title ?? 'Focus session'}</Text>
+          <Text style={styles.cardMeta}>
+            {formatSessionTime(session.planned_start_at)} · {session.estimated_minutes}m · {focusLabel(session.focus_mode)}
+          </Text>
+        </View>
+      </View>
+      {action ? (
+        <View style={styles.action}>
+          <MaterialIcons name={action.icon} size={16} color={colors.surface} />
+          <Text style={styles.actionText}>{action.label}</Text>
+        </View>
+      ) : (
+        <MaterialIcons name="chevron-right" size={22} color={colors.muted} />
+      )}
+    </TouchableOpacity>
+  );
+
+  const renderDone = (session: TodaySession) => (
+    <View key={session.id} style={styles.doneCard}>
+      <View style={styles.cardLeft}>
+        <MaterialIcons name="check-circle" size={20} color={colors.secondary} />
+        <Text style={styles.doneTitle}>{session.task_title ?? 'Focus session'}</Text>
+      </View>
+      <Text style={styles.doneTime}>
+        {session.ended_at ? formatSessionTime(session.ended_at) : String(session.status).replace('_', ' ')}
+      </Text>
+    </View>
+  );
+
+  const section = (title: string, items: TodaySession[], action?: { label: string; icon: keyof typeof MaterialIcons.glyphMap }) =>
+    items.length > 0 && (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        {items.map((item) => renderCard(item, action))}
+      </View>
+    );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Top App Bar */}
       <View style={styles.appBar}>
         <View style={styles.logoContainer}>
-          <Image source={{ uri: AVATAR_URL }} style={styles.avatarMini} />
-          <Text style={styles.logoText}>OnTrack</Text>
+          <Avatar name={user?.full_name} email={user?.email} />
+          <Text style={styles.logoText}>Today</Text>
         </View>
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/settings/notification-settings' as any)}>
           <MaterialIcons name="notifications" size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Greeting Section */}
-        <View style={styles.greetingSection}>
-          <Text style={styles.greetingTitle}>Good Morning, {user?.full_name ?? avatarLetter}</Text>
-          <Text style={styles.greetingSubtitle}>{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
-
-          <View style={styles.infoBanner}>
-            <MaterialIcons name="info" size={20} color={colors.secondary} />
-            <Text style={styles.infoText}>{sessions.length ? `${sessions.length} session${sessions.length === 1 ? '' : 's'} planned today.` : 'No sessions planned today.'}</Text>
-          </View>
-        </View>
-
-        {/* Risk Alert */}
-        {!!dashboard?.risk_card && <TouchableOpacity style={styles.riskAlert}>
-          <View style={styles.riskLeft}>
-            <MaterialIcons name="warning" size={20} color={colors.danger} />
-            <Text style={styles.riskText}>{dashboard.risk_card.message ?? `${dashboard.risk_card.title} needs attention.`}</Text>
-          </View>
-          <MaterialIcons name="chevron-right" size={20} color={colors.danger} />
-        </TouchableOpacity>}
-        {!!error && <Text style={styles.greetingSubtitle}>{error}</Text>}
-
-        {/* Next Session */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Next Session</Text>
-            <Text style={styles.upNextText}>{nextSession ? `UP NEXT: ${new Date(nextSession.planned_start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'NO UPCOMING SESSION'}</Text>
-          </View>
-
-          {nextSession ? <View style={styles.nextSessionCard}>
-            <View style={styles.cardIndicator} />
-            <View style={styles.cardHeader}>
-              <View>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{nextSession.focus_mode === 'HIGH' ? 'High Focus' : 'Normal Focus'}</Text>
-                </View>
-                <Text style={styles.cardTitle}>{nextSession.task_title}</Text>
-              </View>
-              <View style={styles.durationContainer}>
-                <MaterialIcons name="timer" size={16} color={colors.muted} />
-                <Text style={styles.durationText}>{nextSession.estimated_minutes}m</Text>
-              </View>
-            </View>
-
-            <View style={styles.cardContext}>
-              <MaterialIcons name="school" size={18} color={colors.muted} />
-              <Text style={styles.contextText}>{nextSession.status.replace('_', ' ')}</Text>
-            </View>
-
-            <TouchableOpacity style={styles.startBtn} onPress={() => handleStartSession(nextSession.id)}>
-              <MaterialIcons name="play-arrow" size={24} color={colors.surface} />
-              <Text style={styles.startBtnText}>Start Session</Text>
+      <View style={styles.filterRow}>
+        {TODAY_FILTERS.map((option) => {
+          const active = filter === option.key;
+          return (
+            <TouchableOpacity
+              key={option.key}
+              style={[styles.chip, active && styles.chipActive]}
+              onPress={() => setFilter(option.key)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+            >
+              <Text style={[styles.chipText, active && styles.chipTextActive]} numberOfLines={1}>
+                {option.label}
+              </Text>
+              <Text style={[styles.chipCount, active && styles.chipCountActive]}>{counts[option.key]}</Text>
             </TouchableOpacity>
-          </View> : <Text style={styles.greetingSubtitle}>Plan a session from a task to see it here.</Text>}
-        </View>
+          );
+        })}
+      </View>
 
-        {/* Later Today */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Later Today</Text>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={colors.primary} />}
+      >
+        <Text style={styles.date}>{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
+        {!!error && <Text style={styles.subtle}>{error}</Text>}
 
-          {laterSessions.map((session: any) => <TouchableOpacity key={session.id} style={styles.taskCard} onPress={() => handleStartSession(session.id)}>
-            <View style={styles.taskLeft}>
-              <View style={styles.taskIconBg}>
-                <MaterialIcons name="edit-note" size={24} color={colors.muted} />
+        {filter === 'ALL' ? (
+          <>
+            {section('In Progress', groups.inProgress, { label: 'Resume', icon: 'play-arrow' })}
+            {section('Next', groups.next, { label: 'Start', icon: 'play-arrow' })}
+            {section('Later Today', groups.later)}
+            {groups.done.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Done</Text>
+                {groups.done.map(renderDone)}
               </View>
-              <View>
-                <Text style={styles.taskTitle}>{session.task_title}</Text>
-                <Text style={styles.taskMeta}>{new Date(session.planned_start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {session.estimated_minutes}m • {session.focus_mode} Focus</Text>
-              </View>
-            </View>
-            <MaterialIcons name="more-vert" size={24} color={colors.muted} />
-          </TouchableOpacity>)}
-        </View>
+            )}
+          </>
+        ) : (
+          <View style={styles.section}>
+            {filtered.map((item) => (filter === 'DONE' ? renderDone(item) : renderCard(item)))}
+          </View>
+        )}
 
-        {/* Completed Today */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Completed Today</Text>
+        {!filtered.length && (
+          <View style={styles.empty}>
+            <MaterialIcons name="event-available" size={30} color={colors.muted} />
+            <Text style={styles.subtle}>
+              {filter === 'ALL' ? 'Nothing planned for today yet.' : 'No sessions in this view.'}
+            </Text>
+          </View>
+        )}
 
-          {completedSessions.map((session: any) => <View key={session.id} style={styles.completedCard}>
-            <View style={styles.completedLeft}>
-              <View style={styles.completedIconBg}>
-                <MaterialIcons name="check-circle" size={16} color={colors.secondary} />
-              </View>
-              <Text style={styles.completedText}>{session.task_title}</Text>
-            </View>
-            <Text style={styles.completedTime}>{session.ended_at ? new Date(session.ended_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Completed'}</Text>
-          </View>)}
-        </View>
+        <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/session/plan' as any)}>
+          <MaterialIcons name="add" size={20} color={colors.primary} />
+          <Text style={styles.addBtnText}>Add Session</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9f9f9',
+  container: { flex: 1, backgroundColor: '#f9f9f9' },
+  appBar: { height: 72, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24 },
+  logoContainer: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  logoText: { fontSize: typography.sizes.xl, fontWeight: 'bold', color: colors.primary },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+
+  filterRow: { flexDirection: 'row', gap: 6, paddingHorizontal: 24, paddingBottom: 12 },
+  chip: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5,
+    paddingVertical: 9, paddingHorizontal: 6, borderRadius: 99,
+    backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border,
   },
-  appBar: {
-    height: 80,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    paddingHorizontal: 24,
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatarMini: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
-    borderWidth: 2,
-    borderColor: '#D4E2FF', // primary-container
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarMiniText: {
-    color: colors.primary,
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  logoText: {
-    fontSize: typography.sizes.xl,
-    fontWeight: 'bold',
-    color: colors.primary,
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 48,
-  },
-  greetingSection: {
-    marginTop: 16,
-  },
-  greetingTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: colors.text,
-  },
-  greetingSubtitle: {
-    fontSize: typography.sizes.base,
-    color: colors.muted,
-    marginTop: 4,
-  },
-  infoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: colors.secondary + '15',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: colors.secondary + '30',
-  },
-  infoText: {
-    fontSize: typography.sizes.sm,
-    color: colors.secondary,
-    fontWeight: '600',
-  },
-  riskAlert: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.danger + '15',
-    padding: 16,
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.danger,
-    marginTop: 24,
-  },
-  riskLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  riskText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: '600',
-    color: colors.danger,
-  },
-  sectionContainer: {
-    marginTop: 32,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: typography.sizes.lg,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 16,
-  },
-  upNextText: {
-    fontSize: typography.sizes.xs,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 16,
-  },
-  nextSessionCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    overflow: 'hidden',
-  },
-  cardIndicator: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    width: 4,
-    backgroundColor: colors.tertiary,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  badge: {
-    backgroundColor: colors.tertiary + '15',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 100,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-  },
-  badgeText: {
-    fontSize: typography.sizes.xs,
-    color: colors.tertiary,
-    fontWeight: '600',
-  },
-  cardTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.text,
-  },
-  durationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  durationText: {
-    fontSize: typography.sizes.xs,
-    color: colors.muted,
-    fontWeight: '600',
-  },
-  cardContext: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 24,
-  },
-  contextText: {
-    fontSize: typography.sizes.sm,
-    color: colors.muted,
-  },
-  startBtn: {
-    backgroundColor: colors.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 52,
-    borderRadius: 16,
-    gap: 8,
-  },
-  startBtnText: {
-    color: colors.surface,
-    fontWeight: 'bold',
-    fontSize: typography.sizes.base,
-  },
-  taskCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    padding: 20,
-    borderRadius: 24,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  taskLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  taskIconBg: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  taskTitle: {
-    fontSize: typography.sizes.base,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  taskMeta: {
-    fontSize: typography.sizes.xs,
-    color: colors.muted,
-  },
-  completedCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#F1F5F950', // low opacity
-    padding: 16,
-    borderRadius: 20,
-    marginBottom: 12,
-    opacity: 0.7,
-  },
-  completedLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  completedIconBg: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.secondary + '30',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  completedText: {
-    fontSize: typography.sizes.sm,
-    color: colors.muted,
-    textDecorationLine: 'line-through',
-  },
-  completedTime: {
-    fontSize: typography.sizes.xs,
-    color: colors.muted,
-  },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { color: colors.text, fontSize: 12, fontWeight: '700' },
+  chipTextActive: { color: colors.surface },
+  chipCount: { color: colors.muted, fontSize: 11, fontWeight: '800' },
+  chipCountActive: { color: '#D6E4FF' },
+
+  scrollContent: { paddingHorizontal: 24, paddingBottom: 48, gap: 20 },
+  date: { color: colors.muted, fontSize: 15 },
+  subtle: { color: colors.muted, fontSize: 15, textAlign: 'center', lineHeight: 22 },
+  flex: { flex: 1 },
+
+  section: { gap: 10 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: colors.text },
+  card: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, backgroundColor: colors.surface, borderRadius: 18, padding: 16 },
+  cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
+  dotHigh: { backgroundColor: colors.tertiary },
+  cardTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  cardMeta: { color: colors.muted, fontSize: 13, marginTop: 2 },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.primary, borderRadius: 99, paddingHorizontal: 12, paddingVertical: 7 },
+  actionText: { color: colors.surface, fontSize: 13, fontWeight: '800' },
+
+  doneCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, backgroundColor: '#EEF6F4', borderRadius: 16, padding: 14 },
+  doneTitle: { color: colors.text, fontSize: 15, fontWeight: '600' },
+  doneTime: { color: colors.secondary, fontSize: 13, fontWeight: '700' },
+
+  empty: { alignItems: 'center', gap: 10, paddingVertical: 28 },
+  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 16, paddingVertical: 15, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.primary },
+  addBtnText: { color: colors.primary, fontWeight: '800', fontSize: 15 },
 });

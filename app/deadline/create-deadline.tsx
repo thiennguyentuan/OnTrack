@@ -99,9 +99,7 @@ export default function CreateDeadlineScreen() {
     setSubmitting(true);
     try {
       await createDeadline(toDeadlinePayload(data));
-      Alert.alert('Thành công', 'Đã tạo Deadline mới thành công!', [
-        { text: 'OK', onPress: handleBack },
-      ]);
+      router.replace('/(tabs)/plans' as any);
     } catch (cause: any) {
       Alert.alert('Không thể tạo Deadline', cause?.message ?? 'Vui lòng thử lại.');
     } finally {

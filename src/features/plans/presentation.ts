@@ -22,7 +22,8 @@ export type DeadlineCardPresentation = {
 };
 
 export function toPlanItem(deadline: DeadlineCardSource, now = new Date()): DeadlineCardPresentation {
-  const progress = Math.max(0, Math.min(100, Number(deadline.progress) || 0));
+  // Rounded for display: the API averages child progress, so it arrives as 45.83.
+  const progress = Math.round(Math.max(0, Math.min(100, Number(deadline.progress) || 0)));
   const complete = progress === 100 || deadline.status === 'COMPLETED';
   const atRisk = !complete && (deadline.risk_level === 'AT_RISK' || deadline.risk_level === 'OVERDUE' || deadline.status === 'AT_RISK' || deadline.status === 'OVERDUE');
   const category = complete ? 'COMPLETED' : atRisk ? 'AT_RISK' : 'ACTIVE';

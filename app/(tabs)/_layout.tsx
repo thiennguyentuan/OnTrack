@@ -3,6 +3,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { MaterialIcons } from '@expo/vector-icons';
 
+type IconName = keyof typeof MaterialIcons.glyphMap;
+
+/** The five destinations in the navigation flow diagram, in its order. */
+const TABS: { name: string; title: string; icon: IconName }[] = [
+  { name: 'home', title: 'Home', icon: 'home' },
+  { name: 'plans', title: 'Deadlines', icon: 'event-note' },
+  { name: 'today', title: 'Today', icon: 'calendar-today' },
+  { name: 'progress', title: 'Progress', icon: 'insights' },
+  { name: 'me', title: 'Profile', icon: 'person' },
+];
+
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
 
@@ -11,11 +22,9 @@ export default function TabsLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.text,
         headerShown: false,
         tabBarStyle: {
-          height: 56 + insets.bottom,
+          height: 58 + insets.bottom,
           paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
           paddingTop: 6,
           backgroundColor: colors.surface,
@@ -26,40 +35,20 @@ export default function TabsLayout() {
           shadowRadius: 10,
           shadowOffset: { width: 0, height: -4 },
         },
-        tabBarItemStyle: {
-          borderRadius: 16,
-          marginHorizontal: 12,
-        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarItemStyle: { borderRadius: 14, marginHorizontal: 2 },
       }}
     >
-      <Tabs.Screen
-        name="today"
-        options={{
-          title: 'Today',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="calendar-today" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="plans"
-        options={{
-          title: 'Plans',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="event-note" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="me"
-        options={{
-          title: 'Me',
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={size} color={color} />
-          ),
-        }}
-      />
+      {TABS.map((tab) => (
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{
+            title: tab.title,
+            tabBarIcon: ({ color, size }) => <MaterialIcons name={tab.icon} size={size - 2} color={color} />,
+          }}
+        />
+      ))}
     </Tabs>
   );
 }

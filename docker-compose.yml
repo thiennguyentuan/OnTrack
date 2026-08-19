@@ -12,6 +12,13 @@ services:
     volumes:
       - ontrack-postgres-data:/var/lib/postgresql/data
       - ./backend/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+  mailpit:
+    image: axllent/mailpit:v1.26
+    container_name: ontrack-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 
 volumes:
   ontrack-postgres-data:

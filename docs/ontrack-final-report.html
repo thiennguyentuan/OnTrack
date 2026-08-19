@@ -19,7 +19,7 @@
 <body><main>
   <header>
     <h1>OnTrack — Báo cáo tích hợp FE / BE</h1>
-    <p class="meta">Ngày kiểm tra: 18/08/2026 · Nhánh làm việc: <code>codex/ontrack-demo-backend</code></p>
+    <p class="meta">Ngày kiểm tra: 19/08/2026 · Nhánh làm việc: <code>codex/ontrack-demo-backend</code></p>
     <p><span class="badge ok">MÃ NGUỒN ĐÃ HỢP NHẤT</span> <span class="badge ok">RUNTIME REST ĐÃ XÁC MINH</span></p>
   </header>
 
@@ -32,7 +32,9 @@
       <li>Nối tab Plans với <code>GET /api/v3/deadlines</code>; chuyển dữ liệu API thành card UI, lọc/tìm kiếm trên dữ liệu thật và mở chi tiết bằng ID thật.</li>
       <li>Nối tab Today với <code>GET /api/v3/dashboard/today</code>; hiển thị session kế tiếp, session còn lại, session hoàn thành và risk card từ BE.</li>
       <li>Chuẩn hóa các route FE cũ để Expo Router typecheck được với cấu trúc file hiện tại.</li>
-      <li>Thêm unit test cho adapter deadline → Plans card.</li>
+      <li>Audit lại UX theo wireframe: Deadline Detail, Plan Session và Focus Session; bổ sung date picker native và ô nhập ngày/giờ cho web.</li>
+      <li>Đồng bộ tiếp Task Detail và Post-Session Review với wireframe: progress card, progress chips, task/session cards và hành động chính.</li>
+      <li>Thêm test domain cho adapter, session planner và timer Focus Session.</li>
     </ul>
   </section>
 
@@ -42,11 +44,11 @@
       <thead><tr><th>Kiểm tra</th><th>Kết quả</th><th>Ghi chú</th></tr></thead>
       <tbody>
         <tr><td><code>pnpm run typecheck</code></td><td><span class="badge ok">PASS</span></td><td><code>tsc --noEmit</code> kết thúc thành công sau merge.</td></tr>
-        <tr><td><code>pnpm test</code></td><td><span class="badge ok">PASS</span></td><td>3 test domain pass; 10 test integration bị skip vì không có Supabase local, không phải BE REST đang triển khai.</td></tr>
+        <tr><td><code>pnpm test</code></td><td><span class="badge ok">PASS</span></td><td>17 test files / 22 test pass; 5 file integration (10 test) được skip vì không có Supabase local.</td></tr>
         <tr><td><code>git diff --check</code></td><td><span class="badge ok">PASS</span></td><td>Không có lỗi whitespace; chỉ có cảnh báo CRLF của Git trên Windows.</td></tr>
         <tr><td>Docker/PostgreSQL và FastAPI health</td><td><span class="badge ok">PASS</span></td><td>Khởi động Docker Desktop, PostgreSQL container và FastAPI; <code>GET /health</code> trả <code>{"status":"ok","database":"postgresql"}</code>.</td></tr>
         <tr><td>REST smoke flow</td><td><span class="badge ok">PASS</span></td><td>Đăng ký → Deadline → Milestone → Task → Session → Start → End → Review → Follow-up. Task progress = 40; follow-up progress_before = 40.</td></tr>
-        <tr><td>Expo web export</td><td><span class="badge ok">PASS</span></td><td><code>pnpm exec expo export --platform web --output-dir .expo-export-test</code> bundle thành công (1,401 modules).</td></tr>
+        <tr><td>Expo web export</td><td><span class="badge ok">PASS</span></td><td><code>pnpm exec expo export --platform web --output-dir .expo-export-test</code> bundle thành công (1,085 modules).</td></tr>
       </tbody>
     </table>
   </section>
@@ -65,7 +67,7 @@
 
   <section>
     <h2>Kết quả E2E trên web local</h2>
-    <p><span class="badge ok">PASS</span> Chạy trên <code>http://127.0.0.1:8081</code> với PostgreSQL và FastAPI local.</p>
+    <p><span class="badge ok">PASS</span> Web bundle đã xác minh trên LAN <code>http://192.168.1.2:8083</code>, API dùng <code>http://192.168.1.2:8001</code>.</p>
     <ol>
       <li>Đăng ký tài khoản E2E mới và được chuyển đến Today.</li>
       <li>Tạo Deadline từ form FE; deadline xuất hiện lại trong Plans từ API thật.</li>
@@ -73,6 +75,8 @@
       <li>Tạo, start Focus Session, end early và lưu Review.</li>
       <li>Xác minh DB: session <code>ENDED_EARLY</code>, progress task/review = <code>40</code>, actual minutes = <code>20</code>.</li>
       <li>Browser console không có lỗi mức <code>error</code>.</li>
+      <li>Tab Me lấy tên/email từ REST; Account update tên/múi giờ qua <code>PUT /api/v3/users/me</code> và giá trị vẫn còn sau tải lại.</li>
+      <li>History gọi endpoint session history, hiển thị empty state thật khi tài khoản không có phiên hoàn thành.</li>
     </ol>
     <p>Trong quá trình E2E đã phát hiện màn Create Deadline ban đầu chỉ hiển thị thông báo thành công. Màn này đã được sửa để gọi <code>POST /api/v3/deadlines</code> và xác minh lại bằng UI.</p>
   </section>
@@ -84,14 +88,15 @@
       <thead><tr><th>Nhóm</th><th>Trạng thái</th><th>Bằng chứng</th></tr></thead>
       <tbody>
         <tr><td>Auth, Profile API</td><td><span class="badge ok">PASS</span></td><td>Register, login, get/update profile, logout đã gọi API local thành công.</td></tr>
+        <tr><td>Forgot Password</td><td><span class="badge ok">PASS</span></td><td>SMTP Mailpit local gửi link reset; token một lần/hạn 30 phút, đổi mật khẩu và login lại đã xác minh E2E.</td></tr>
         <tr><td>Plans CRUD</td><td><span class="badge ok">PASS</span></td><td>Deadline/Milestone/Task create, read, update, delete; route dynamic hiển thị dữ liệu thật.</td></tr>
         <tr><td>Sessions & Review</td><td><span class="badge ok">PASS</span></td><td>Create/reschedule/start/pause/resume/end/review/follow-up/history/risk đã test qua UI/API.</td></tr>
         <tr><td>Today & Plans tabs</td><td><span class="badge ok">PASS</span></td><td>Đọc dashboard/deadline từ REST và hiển thị card dữ liệu thật.</td></tr>
-        <tr><td>Profile, History, Settings UI từ FE team</td><td><span class="badge warn">MOCK-ONLY</span></td><td>Hiện còn dùng dữ liệu cố định hoặc state cục bộ; chưa gọi BE nên không thể coi là tính năng production.</td></tr>
-        <tr><td>Legacy detail/create/edit screens từ FE team</td><td><span class="badge warn">MOCK-ONLY</span></td><td>Một số màn chỉ <code>console.log</code> payload; các route động bổ sung mới là luồng REST thật.</td></tr>
+        <tr><td>Profile, History, Settings UI từ FE team</td><td><span class="badge ok">PASS</span></td><td>Profile/History đọc REST; Account ghi <code>PUT /users/me</code>. Focus/Notification preferences được lưu AsyncStorage vì backend chưa có schema preference.</td></tr>
+        <tr><td>Legacy detail/create/edit screens từ FE team</td><td><span class="badge ok">PASS</span></td><td>Không còn handler giả hoặc <code>console.log</code>; deep-link legacy chuyển về route động sử dụng REST tương ứng.</td></tr>
       </tbody>
     </table>
-    <p>Đã sửa trong audit: đặt <code>/sessions/history</code> trước route UUID trong FastAPI; logout xóa session store và trở về Login.</p>
+    <p>Đã sửa trong audit: đặt <code>/sessions/history</code> trước route UUID trong FastAPI; logout xóa session store; duplicate email hiển thị lỗi ngay trên form; Plans refresh sau khi tạo; Deadline Detail/Task Detail/Plan Session/Focus Session/Post-Session Review bám wireframe.</p>
   </section>
 
   <section>

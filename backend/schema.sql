@@ -42,7 +42,17 @@ create table if not exists sessions (
   created_at timestamptz not null default now(), updated_at timestamptz not null default now()
 );
 
+create table if not exists password_reset_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  token_hash text not null unique,
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists deadlines_user_due_idx on deadlines(user_id, due_at);
 create index if not exists milestones_deadline_idx on milestones(deadline_id);
 create index if not exists tasks_milestone_idx on tasks(milestone_id);
 create index if not exists sessions_task_idx on sessions(task_id, planned_start_at);
+create index if not exists password_reset_tokens_lookup_idx on password_reset_tokens(token_hash, expires_at) where used_at is null;
