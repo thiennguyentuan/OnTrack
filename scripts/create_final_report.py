@@ -8,7 +8,7 @@ from docx.oxml.ns import qn
 from docx.enum.style import WD_STYLE_TYPE
 from pathlib import Path
 
-OUT = Path('docs/OnTrack_Project_Report_Final.docx')
+OUT = Path('docs/OnTrack_Project_Report_Chapter_Format.docx')
 
 def shade(cell, fill):
     tcPr = cell._tc.get_or_add_tcPr()
@@ -53,8 +53,26 @@ def numbered(doc, items):
         p = doc.add_paragraph(style='List Number')
         p.add_run(item)
 
+HEADING_RENAMES = {
+    '1. Introduction': 'Chapter 1: Introduction',
+    '1.1 Background and problem': '1.1 Problem Statement',
+    '1.2 Project motivation': '1.2 Motivation',
+    '1.3 Objectives': '1.3 Objective',
+    '1.4 Scope': '1.4 Scope',
+    '2. Research Background and Design Rationale': 'Chapter 2: Literature Review',
+    '2.1 Research gap addressed by the project': '2.1 Research Gap',
+    '3. Requirements Analysis': 'Chapter 3: Requirements Analysis',
+    '4. Analysis and Design': 'Chapter 4: Analysis and Design',
+    '5. Implementation': 'Chapter 5: Implementation',
+    '6. Project Plan': 'Chapter 6: Project Plan',
+    '7. Testing and Results': 'Chapter 7: Testing and Results',
+    '8. Future Work': 'Chapter 8: Future Work',
+    '9. How to Run and Demonstrate': 'Chapter 9: How to Run and Demonstrate',
+    '10. Conclusion': 'Chapter 10: Conclusion',
+}
+
 def h(doc, text, level=1):
-    doc.add_heading(text, level=level)
+    doc.add_heading(HEADING_RENAMES.get(text, text), level=level)
 
 def p(doc, text='', bold_prefix=None):
     para = doc.add_paragraph()
